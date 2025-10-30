@@ -21,7 +21,7 @@ export default function HealingChatPage() {
   }, []);
 
 
-      <header className="fixed top-4 right-4 z-50"><DevLogin /></header>
+      <header className="fixed top-4 right-4 z-50 flex gap-3 items-center"><DevLogin /><span className="hidden md:inline">|</span> <ParticleLogin /></header>
   return (
     <div className="font-sans bg-gradient-to-br from-[#fff0f5] to-[#e6f7ff] min-h-screen flex justify-center items-center p-4 md:p-8">
       <Script src="https://code.iconify.design/3/3.1.1/iconify.min.js" strategy="afterInteractive" />

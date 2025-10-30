@@ -1,4 +1,4 @@
-// linkya-frontend/lib/auth/particle-auth.ts
+﻿// linkya-frontend/lib/auth/particle-auth.ts
 
 import { ParticleNetwork } from '@particle-network/auth';
 import { ParticleAuthUser } from '../chatkit/chatkit-types';
@@ -18,7 +18,9 @@ class ParticleAuthManager {
       const appId = process.env.NEXT_PUBLIC_PARTICLE_APP_ID || '';
 
       if (!projectId || !clientKey || !appId) {
-        throw new Error('Particle Auth 配置不完整');
+        console.warn('Particle Auth 未配置完整，將使用模擬登入（Dev 模式）');
+        this.particleAuth = null;
+        return;
       }
 
       this.particleAuth = new ParticleNetwork({
@@ -27,18 +29,19 @@ class ParticleAuthManager {
         appId,
       });
     } catch (error) {
-      console.error('Particle Auth 初始化失敗:', error);
-      throw new Error('無法初始化 Particle Auth');
+      console.error('Particle Auth ???仃??', error);
+      throw new Error('?⊥?????Particle Auth');
     }
   }
 
   async login(): Promise<ParticleAuthUser> {
-    if (!this.particleAuth) {
-      throw new Error('Particle Auth 未初始化');
+    if (!this.particleAuth) { this.currentUser = null; return; };
+      this.currentUser = mockUser;
+      return this.currentUser;
     }
 
     try {
-      // 模擬登入，實際實現需要調用 Particle Auth API
+      // 璅⊥?餃嚗祕?祕?暸?閬矽??Particle Auth API
       const mockUser: ParticleAuthUser = {
         uuid: 'mock-user-' + Date.now(),
         walletAddress: '0x' + Math.random().toString(16).substr(2, 40),
@@ -51,21 +54,22 @@ class ParticleAuthManager {
       this.currentUser = mockUser;
       return this.currentUser;
     } catch (error) {
-      console.error('Particle Auth 登入失敗:', error);
-      throw new Error('登入失敗');
+      console.error('Particle Auth ?餃憭望?:', error);
+      throw new Error('?餃憭望?');
     }
   }
 
   async logout(): Promise<void> {
-    if (!this.particleAuth) {
-      throw new Error('Particle Auth 未初始化');
+    if (!this.particleAuth) { this.currentUser = null; return; };
+      this.currentUser = mockUser;
+      return this.currentUser;
     }
 
     try {
       this.currentUser = null;
     } catch (error) {
-      console.error('Particle Auth 登出失敗:', error);
-      throw new Error('登出失敗');
+      console.error('Particle Auth ?餃憭望?:', error);
+      throw new Error('?餃憭望?');
     }
   }
 
@@ -74,15 +78,16 @@ class ParticleAuthManager {
   }
 
   async signMessage(message: string): Promise<string | null> {
-    if (!this.particleAuth) {
-      return null;
+    if (!this.particleAuth) { this.currentUser = null; return; };
+      this.currentUser = mockUser;
+      return this.currentUser;
     }
 
     try {
-      // 模擬簽名，實際實現需要調用 Particle Auth API
+      // 璅⊥蝪賢?嚗祕?祕?暸?閬矽??Particle Auth API
       return '0x' + Math.random().toString(16).substr(2, 64);
     } catch (error) {
-      console.error('簽名訊息失敗:', error);
+      console.error('蝪賢?閮憭望?:', error);
       return null;
     }
   }
@@ -92,15 +97,16 @@ class ParticleAuthManager {
     value: string;
     data?: string;
   }): Promise<string | null> {
-    if (!this.particleAuth) {
-      return null;
+    if (!this.particleAuth) { this.currentUser = null; return; };
+      this.currentUser = mockUser;
+      return this.currentUser;
     }
 
     try {
-      // 模擬交易，實際實現需要調用 Particle Auth API
+      // 璅⊥鈭斗?嚗祕?祕?暸?閬矽??Particle Auth API
       return '0x' + Math.random().toString(16).substr(2, 64);
     } catch (error) {
-      console.error('發送交易失敗:', error);
+      console.error('?潮漱?仃??', error);
       return null;
     }
   }
@@ -133,7 +139,7 @@ class ParticleAuthManager {
     try {
       return [];
     } catch (error) {
-      console.error('獲取用戶 NFT 失敗:', error);
+      console.error('?脣??冽 NFT 憭望?:', error);
       return [];
     }
   }
@@ -146,12 +152,12 @@ class ParticleAuthManager {
     try {
       return [];
     } catch (error) {
-      console.error('獲取用戶 AI 人格失敗:', error);
+      console.error('?脣??冽 AI 鈭箸憭望?:', error);
       return [];
     }
   }
 }
 
-// 單例模式
+// ?桐?璅∪?
 export const particleAuthManager = new ParticleAuthManager();
 export default particleAuthManager;
