@@ -1,0 +1,31 @@
+﻿# Node/Next
+node_modules/
+.next/
+dist/
+out/
+.cache/
+coverage/
+
+# Env
+.env
+.env.*
+!.env.example
+linkya-frontend/.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hardhat
+cache/
+artifacts/
+
+# Misc
+*.log
+*.zip
+*.tmp

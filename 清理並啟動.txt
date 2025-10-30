@@ -1,0 +1,113 @@
+========================================
+LINKYA-AI 清理並啟動服務
+========================================
+
+⚡ 快速修復步驟：
+
+----------------------------------------
+步驟 1: 清理舊進程
+----------------------------------------
+
+在 PowerShell 中運行以下命令：
+
+# 查找並停止占用端口 8545 的進程
+$processes = Get-NetTCPConnection -LocalPort 8545 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
+if($processes) {
+    foreach($pid in $processes) {
+        Stop-Process -Id $pid -Force
+    }
+}
+
+# 查找並停止占用端口 3000 的進程  
+$processes = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
+if($processes) {
+    foreach($pid in $processes) {
+        Stop-Process -Id $pid -Force
+    }
+}
+
+Write-Host "✅ 清理完成！"
+Start-Sleep -Seconds 2
+
+----------------------------------------
+步驟 2: 啟動 Hardhat 節點
+----------------------------------------
+
+# 終端 1: Hardhat 節點
+cd C:\Users\waiti\LINKYA-AI
+npx hardhat node
+
+# 等待看到：
+# Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
+
+----------------------------------------
+步驟 3: 部署合約
+----------------------------------------
+
+# 終端 2: 部署合約（需要新開一個終端，或者按 Ctrl+C 暫停 Hardhat）
+cd C:\Users\waiti\LINKYA-AI
+npx hardhat run scripts/deploy-local.ts --network hardhat
+
+# 等待看到：
+# ✅ LINKYAPersonaNFT 合約部署成功!
+
+----------------------------------------
+步驟 4: 啟動前端
+----------------------------------------
+
+# 終端 3: 前端服務器
+cd C:\Users\waiti\LINKYA-AI\linkya-frontend
+npm run dev
+
+# 等待看到：
+# Local: http://localhost:3000
+
+----------------------------------------
+步驟 5: 訪問應用
+----------------------------------------
+
+打開瀏覽器：
+http://localhost:3000
+
+========================================
+測試步驟
+========================================
+
+1. Dev 登入
+   - 點擊右上角 "Dev 登入"
+   - Email: demo@linkya.local
+   - Password: demo12345
+
+2. 鑄造 NFT
+   - 點擊 "🎭 鑄造 NFT"
+   - 點擊 "🚀 鑄造 CoreLink-Framework NFT"
+
+3. AI 對話
+   - 點擊 "🧠 AI 對話"
+   - 測試視覺對話界面
+
+4. 後台管理
+   - 訪問 http://localhost:3000/admin
+
+========================================
+如有問題
+========================================
+
+檢查服務狀態：
+
+# 檢查 Hardhat 是否運行
+curl http://127.0.0.1:8545
+
+應該返回 JSON 響應（不是 parse error）
+
+# 檢查前端是否運行
+curl http://localhost:3000
+
+應該返回 HTML 頁面
+
+
+
+
+
+
+

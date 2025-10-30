@@ -1,0 +1,2624 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>LINKYA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            background: linear-gradient(135deg, #2D1B69 0%, #1A0B3D 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 40px 15px;
+            /* 手機版調整 - 增加上下間距 */
+            padding-top: calc(env(safe-area-inset-top, 20px) + 40px);
+            padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 40px);
+        }
+        
+        .heart-window-container {
+            position: relative;
+            width: min(500px, 80vw);
+            height: min(500px, 80vw);
+            margin-bottom: 20px;
+        }
+        
+        .heart-window-canvas {
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .heart-window-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 182, 193, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: heartPulse 4.5s infinite ease-in-out;
+        }
+        
+        .input-container {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
+            left: 2%;
+            right: 2%;
+            width: 96%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 12px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: none;
+            /* 手機版優化 */
+            margin: 0;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+        
+        .pipi-container {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 20px) + 100px);
+            left: 2%;
+            width: 120px;
+            height: 60px;
+            pointer-events: none;
+            margin: 0;
+            z-index: 1000;
+        }
+        
+        .pipi-mini {
+            position: absolute;
+            font-size: 1.8em;
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            animation: pipiHorizontalMove 12s ease-in-out infinite;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            bottom: 0;
+            left: 0;
+            z-index: 1001;
+            width: 120px;
+            height: 60px;
+            visibility: visible !important;
+            opacity: 1 !important;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .pipi-face {
+            position: relative;
+            display: inline-block;
+            white-space: nowrap;
+            font-size: inherit;
+            line-height: 1;
+        }
+        
+        .pipi-eyes {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 8px;
+            animation: pipiEyeBlink 3s ease-in-out infinite;
+        }
+        
+        .pipi-eye {
+            width: 6px;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+        }
+        
+        .pipi-mini:hover {
+            transform: scale(1.2);
+        }
+        
+        .pipi-speech-bubble {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            max-width: 300px;
+            min-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .pipi-speech-bubble.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .pipi-speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid rgba(255, 255, 255, 0.95);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        
+        .message-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 16px;
+            width: 100%;
+            padding: 8px 12px;
+            /* 手機版優化 */
+            font-size: 16px; /* 防止iOS縮放 */
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+        
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-left: auto;
+            flex-shrink: 0;
+            /* 手機版優化 */
+            min-width: 40px;
+        }
+        
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .send-button:active {
+            transform: translateY(0);
+        }
+        
+        .send-icon {
+            color: white;
+            font-size: 18px;
+        }
+        
+        .chat-messages {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 20px) + 80px);
+            left: 2%;
+            right: 2%;
+            width: 96%;
+            bottom: calc(env(safe-area-inset-bottom, 20px) + 140px);
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            /* 手機版優化 */
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+            /* 手機版優化 */
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        
+        .message.user {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            align-self: flex-end;
+            color: white;
+        }
+        
+        .message.llm {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            align-self: flex-start;
+            color: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @keyframes heartPulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+                opacity: 0.2;
+            }
+        }
+        
+        @keyframes pipiHorizontalMove {
+            0% { 
+                transform: translateX(0px); 
+            }
+            20% { 
+                transform: translateX(calc(100% - 120px)); 
+            }
+            40% { 
+                transform: translateX(0px); 
+            }
+            60% { 
+                transform: translateX(calc(100% - 120px)); 
+            }
+            80% { 
+                transform: translateX(0px); 
+            }
+            100% { 
+                transform: translateX(calc(100% - 120px)); 
+            }
+        }
+        
+        @keyframes pipiEyeBlink {
+            0%, 90%, 100% {
+                transform: translate(-50%, -50%) scaleY(1);
+                opacity: 1;
+            }
+            92%, 98% {
+                transform: translate(-50%, -50%) scaleY(0.1);
+                opacity: 0.3;
+            }
+        }
+        
+        @keyframes llmRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes llmPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes llmCore {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes llmSparklesRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes llmSparkleRotate1 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes llmSparkleRotate2 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes llmSparkleRotate3 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes llmSparkleRotate4 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes llmSparkleRotate5 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes llmSparkleRotate6 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes llmSparkleRotate7 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes llmSparkleRotate8 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes llmSparkleRotate9 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .user-info {
+            position: fixed !important;
+            top: calc(env(safe-area-inset-top, 20px) + 20px) !important;
+            right: 4% !important;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 150px;
+            z-index: 1000;
+            /* LINE用戶指示器 */
+            position: relative;
+        }
+        
+        .user-info.line-user {
+            border: 1px solid rgba(0, 195, 0, 0.5);
+            background: rgba(0, 195, 0, 0.1);
+        }
+        
+        .user-info.line-user::before {
+            content: 'LINE';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #00C300;
+            color: white;
+            font-size: 8px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .user-name {
+            font-weight: 500;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+        
+        .llm-info {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 20px) + 20px);
+            left: 2%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+        }
+        
+        .llm-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #00bfff 0%, #0080ff 50%, #0040ff 100%);
+            position: relative;
+            overflow: hidden;
+            animation: llmRotate 2s linear infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        /* 9種不同顏色的球狀燈 */
+        .llm-avatar.stage-1 { background: radial-gradient(circle, #8B5CF6 0%, #A78BFA 50%, #C084FC 100%); } /* 紫色 - 初生懵懂 */
+        .llm-avatar.stage-2 { background: radial-gradient(circle, #3B82F6 0%, #60A5FA 50%, #93C5FD 100%); } /* 藍色 - 好奇探索 */
+        .llm-avatar.stage-3 { background: radial-gradient(circle, #10B981 0%, #34D399 50%, #6EE7B7 100%); } /* 綠色 - 漸漸開朗 */
+        .llm-avatar.stage-4 { background: radial-gradient(circle, #F59E0B 0%, #FBBF24 50%, #FDE047 100%); } /* 黃色 - 個性萌芽 */
+        .llm-avatar.stage-5 { background: radial-gradient(circle, #EF4444 0%, #F87171 50%, #FCA5A5 100%); } /* 紅色 - 情感豐富 */
+        .llm-avatar.stage-6 { background: radial-gradient(circle, #8B5CF6 0%, #C084FC 50%, #DDD6FE 100%); } /* 紫粉 - 智慧成長 */
+        .llm-avatar.stage-7 { background: radial-gradient(circle, #06B6D4 0%, #22D3EE 50%, #67E8F9 100%); } /* 青色 - 默契建立 */
+        .llm-avatar.stage-8 { background: radial-gradient(circle, #F97316 0%, #FB923C 50%, #FDBA74 100%); } /* 橙色 - 熱情洋溢 */
+        .llm-avatar.stage-9 { background: radial-gradient(circle, #EC4899 0%, #F472B6 50%, #F9A8D4 100%); } /* 粉色 - 完美夥伴 */
+        
+        /* 球狀燈發光效果 */
+        .llm-avatar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+            border-radius: 50%;
+            animation: llmPulse 1.5s ease-in-out infinite alternate;
+        }
+        
+        .llm-avatar::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20%;
+            height: 20%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            animation: llmCore 1s ease-in-out infinite alternate;
+        }
+        
+        /* 外層發光環 */
+        .llm-avatar.glow::before {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        
+        .llm-sparkles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: llmSparklesRotate 3s linear infinite;
+        }
+        
+        .llm-sparkle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+        }
+        
+        .llm-sparkle:nth-child(1) { 
+            top: 20%; left: 50%; 
+            animation: llmSparkleRotate1 4s linear infinite;
+        }
+        .llm-sparkle:nth-child(2) { 
+            top: 35%; left: 75%; 
+            animation: llmSparkleRotate2 3.5s linear infinite;
+        }
+        .llm-sparkle:nth-child(3) { 
+            top: 65%; left: 75%; 
+            animation: llmSparkleRotate3 3.5s linear infinite;
+        }
+        .llm-sparkle:nth-child(4) { 
+            top: 80%; left: 50%; 
+            animation: llmSparkleRotate4 4s linear infinite;
+        }
+        .llm-sparkle:nth-child(5) { 
+            top: 65%; left: 25%; 
+            animation: llmSparkleRotate5 3.5s linear infinite;
+        }
+        .llm-sparkle:nth-child(6) { 
+            top: 35%; left: 25%; 
+            animation: llmSparkleRotate6 3.5s linear infinite;
+        }
+        .llm-sparkle:nth-child(7) { 
+            top: 50%; left: 10%; 
+            animation: llmSparkleRotate7 3s linear infinite;
+        }
+        .llm-sparkle:nth-child(8) { 
+            top: 50%; left: 90%; 
+            animation: llmSparkleRotate8 3s linear infinite;
+        }
+        .llm-sparkle:nth-child(9) { 
+            top: 50%; left: 50%; 
+            animation: llmSparkleRotate9 5s linear infinite;
+        }
+        
+        .llm-name {
+            font-weight: 500;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .llm-name:hover {
+            color: rgba(255, 255, 255, 1);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+        
+        .name-edit-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .name-edit-modal.show {
+            display: block;
+        }
+        
+        .name-edit-title {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .name-edit-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 12px 15px;
+            color: white;
+            font-size: 16px;
+            width: 200px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+        
+        .name-edit-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .name-edit-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .name-edit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .name-edit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .name-edit-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 上下文管理面板 */
+        .context-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            display: none;
+            min-width: 400px;
+        }
+        
+        .context-panel.show {
+            display: block;
+        }
+        
+        .context-title {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .context-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .context-stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .context-stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .context-stat-value {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .context-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .context-slider {
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .context-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        /* 加載狀態 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2D1B69 0%, #1A0B3D 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loading-text {
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 皮皮動作動畫 */
+        @keyframes pipiJump {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px) scale(1.1); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes pipiWiggle {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        @keyframes pipiSpin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        
+        /* 手機版媒體查詢 */
+        @media screen and (max-width: 768px) {
+            .main-container {
+                padding: 2% 2%;
+                margin: 0;
+                width: 96%;
+                max-width: none;
+            }
+            
+            .heart-window-container {
+                width: min(400px, 70vw);
+                height: min(400px, 70vw);
+                margin-bottom: 15px;
+            }
+            
+            .input-container {
+                padding: 10px 15px;
+                gap: 8px;
+                border-radius: 20px;
+                width: calc(100% - 4%);
+                margin: 0 2%;
+                box-sizing: border-box;
+            }
+            
+            .message-input {
+                font-size: 16px; /* 防止iOS縮放 */
+                padding: 6px 10px;
+            }
+            
+            .send-button {
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+            }
+            
+            .send-icon {
+                font-size: 16px;
+            }
+            
+            .chat-messages {
+                padding: 10px;
+                gap: 10px;
+                left: 2%;
+                right: 2%;
+                width: 96%;
+            }
+            
+            .message {
+                padding: 10px 14px;
+                border-radius: 16px;
+                font-size: 14px;
+            }
+            
+            .pipi-mini {
+                font-size: 1.5em;
+                width: 100px;
+                height: 55px;
+                white-space: nowrap;
+            }
+            
+            .pipi-speech-bubble {
+                font-size: 12px;
+                padding: 6px 10px;
+                max-width: 250px;
+                min-width: 150px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .user-info, .llm-info {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            
+            .user-info {
+                max-width: 120px;
+                right: 6% !important;
+                top: calc(env(safe-area-inset-top, 20px) + 15px) !important;
+            }
+            
+            .llm-info {
+                left: 2%;
+            }
+            
+            .user-avatar, .llm-avatar {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .name-edit-modal {
+                padding: 20px;
+                margin: 0 20px;
+            }
+            
+            .name-edit-input {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+        
+        /* 小屏幕手機 */
+        @media screen and (max-width: 480px) {
+            .main-container {
+                padding: 2% 2%;
+                margin: 0;
+                width: 96%;
+                max-width: none;
+            }
+            
+            .heart-window-container {
+                width: min(300px, 60vw);
+                height: min(300px, 60vw);
+                margin-bottom: 10px;
+            }
+            
+            .input-container {
+                padding: 8px 12px;
+                gap: 6px;
+                margin: 0 2%;
+                width: calc(100% - 4%);
+                box-sizing: border-box;
+            }
+            
+            .pipi-container {
+                left: 2%;
+                width: 120px;
+                height: 60px;
+                margin: 0;
+            }
+            
+            .chat-messages {
+                left: 2%;
+                right: 2%;
+                width: 96%;
+                padding: 8px;
+            }
+            
+            .user-info, .llm-info {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+            
+            .user-info {
+                right: 4% !important;
+                top: calc(env(safe-area-inset-top, 20px) + 10px) !important;
+                max-width: 100px;
+            }
+            
+            .llm-info {
+                left: 2%;
+            }
+            
+            .user-avatar, .llm-avatar {
+                width: 18px;
+                height: 18px;
+            }
+        }
+        
+        /* 超小屏幕手機 (iPhone SE等) */
+        @media screen and (max-width: 375px) {
+            .main-container {
+                padding: 2% 2%;
+                margin: 0;
+                width: 96%;
+                max-width: none;
+            }
+            
+            .input-container {
+                margin: 0 2%;
+                width: calc(100% - 4%);
+                box-sizing: border-box;
+            }
+            
+            .pipi-container {
+                left: 2%;
+                width: 120px;
+                height: 60px;
+                margin: 0;
+            }
+            
+            .chat-messages {
+                left: 2%;
+                right: 2%;
+                width: 96%;
+            }
+            
+            .user-info {
+                padding: 2px 6px;
+                font-size: 9px;
+                max-width: 80px;
+                right: 4% !important;
+                top: calc(env(safe-area-inset-top, 20px) + 8px) !important;
+            }
+            
+            .llm-info {
+                padding: 2px 6px;
+                font-size: 9px;
+                left: 2%;
+            }
+            
+            .user-avatar, .llm-avatar {
+                width: 16px;
+                height: 16px;
+            }
+        }
+        
+        /* 防止輸入法遮擋的額外樣式 */
+        @supports (-webkit-touch-callout: none) {
+            /* iOS Safari */
+            .input-container {
+                position: fixed;
+                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 20px);
+            }
+            
+            .chat-messages {
+                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 140px);
+            }
+            
+            .pipi-container {
+                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 100px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加載覆蓋層 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在載入靈芽(LINYA)...</div>
+    </div>
+    
+    <div class="main-container">
+        <div class="heart-window-container">
+            <canvas id="heartWindowCanvas" class="heart-window-canvas" width="500" height="500"></canvas>
+            <div class="heart-window-overlay"></div>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+    </div>
+    
+    <div class="pipi-container">
+        <div class="pipi-mini" id="pipiMini" onclick="triggerPipiInterruption()" title="點擊讓皮皮插話">
+            <div class="pipi-face">
+                ʕ • ᴥ • ʔ
+                <div class="pipi-eyes">
+                    <div class="pipi-eye"></div>
+                    <div class="pipi-eye"></div>
+                </div>
+            </div>
+        </div>
+        <div class="pipi-speech-bubble" id="pipiSpeechBubble"></div>
+    </div>
+    
+    <div class="input-container">
+        <input type="text" class="message-input" id="messageInput" placeholder="輸入訊息..." maxlength="500">
+        <button class="send-button" onclick="sendMessage()">
+            <div class="send-icon">✈</div>
+        </button>
+    </div>
+    
+    <div class="llm-info" id="llmInfo">
+        <div class="llm-avatar" id="llmAvatar" onclick="editLlmName()" ondblclick="openContextPanel()" title="單擊編輯名稱，雙擊管理上下文">
+            <div class="llm-sparkles">
+                <div class="llm-sparkle"></div>
+                <div class="llm-sparkle"></div>
+                <div class="llm-sparkle"></div>
+                <div class="llm-sparkle"></div>
+                <div class="llm-sparkle"></div>
+                <div class="llm-sparkle"></div>
+                <div class="llm-sparkle"></div>
+                <div class="llm-sparkle"></div>
+                <div class="llm-sparkle"></div>
+            </div>
+        </div>
+        <div class="llm-name" id="llmName" onclick="editLlmName()">LINYA</div>
+    </div>
+    
+    <div class="user-info" id="userInfo">
+        <img class="user-avatar" id="userAvatar" src="" alt="用戶頭像">
+        <div class="user-name" id="userName">用戶</div>
+    </div>
+    
+    <!-- 名稱編輯模態框 -->
+    <div class="name-edit-modal" id="nameEditModal">
+        <div class="name-edit-title">修改語氣靈名稱</div>
+        <input type="text" class="name-edit-input" id="nameEditInput" placeholder="輸入新名稱（最多5個中文字）" maxlength="5">
+        <div class="name-edit-buttons">
+            <button class="name-edit-btn" onclick="saveLlmName()">保存</button>
+            <button class="name-edit-btn cancel" onclick="cancelNameEdit()">取消</button>
+        </div>
+    </div>
+    
+    <!-- 上下文管理面板 -->
+    <div class="context-panel" id="contextPanel">
+        <div class="context-title">📊 上下文管理 (50-100條：長期陪伴)</div>
+        <div class="context-stats">
+            <div class="context-stat">
+                <div class="context-stat-label">對話條數</div>
+                <div class="context-stat-value" id="contextMessages">0</div>
+            </div>
+            <div class="context-stat">
+                <div class="context-stat-label">估算Tokens</div>
+                <div class="context-stat-value" id="contextTokens">0</div>
+            </div>
+            <div class="context-stat">
+                <div class="context-stat-label">使用率</div>
+                <div class="context-stat-value" id="contextUsage">0%</div>
+            </div>
+            <div class="context-stat">
+                <div class="context-stat-label">剩餘空間</div>
+                <div class="context-stat-value" id="contextRemaining">0</div>
+            </div>
+        </div>
+        <div class="context-controls">
+            <span style="color: white; font-size: 14px;">上下文長度:</span>
+            <input type="range" class="context-slider" id="contextSlider" min="50" max="100" value="100">
+            <span style="color: white; font-size: 14px;" id="contextSliderValue">100</span>
+        </div>
+        <div class="context-buttons">
+            <button class="name-edit-btn" onclick="compressContext()">🗜️ 壓縮</button>
+            <button class="name-edit-btn" onclick="clearContext()">🗑️ 清空</button>
+            <button class="name-edit-btn" onclick="togglePipiInterruption()">🐻 皮皮插話</button>
+            <button class="name-edit-btn cancel" onclick="closeContextPanel()">關閉</button>
+        </div>
+    </div>
+
+    <script src="llm-config.js"></script>
+    <script>
+        // 皮皮表情系統
+        const pipiExpressions = {
+            normal: 'ʕ • ᴥ • ʔ',
+            happy: 'ʕ◉ᴥ◉ʔ',
+            surprised: 'ʕ◉ᴥ◉ʔ',
+            confused: 'ʕᴥ• ʔ',
+            shy: 'ʕ •ᴥʔ',
+            sad: 'ʕ·ᴥ·ʔ',
+            excited: 'ʕ◉ᴥ◉ʔ',
+            love: 'ʕ￫ᴥ￩ʔ'
+        };
+        
+        // 皮皮智能系統
+        class PipiIntelligence {
+            constructor() {
+                this.conversationContext = [];
+                this.lastInterruptionTime = 0;
+                this.interruptionCooldown = 30000; // 30秒冷卻時間
+                this.interruptionProbability = 0.3; // 30%機率插話
+                this.ownerName = '語氣靈'; // 皮皮知道自己的主人
+                this.lastMentionTime = 0; // 最後一次被提及的時間
+                this.mentionCooldown = 3000; // 3秒冷卻時間（已不使用）
+                this.speechTimeout = null; // 說話氣泡隱藏定時器
+                
+                // 已移除罐頭短語，只使用LLM回應
+            }
+            
+            // 更新主人的名字
+            updateOwnerName(name) {
+                this.ownerName = name;
+                console.log(`🐻 皮皮知道主人叫: ${name}`);
+            }
+            
+            // 更新對話上下文
+            updateContext(role, content) {
+                console.log(`🐻 更新上下文: ${role} -> "${content}"`);
+                
+                this.conversationContext.push({
+                    role: role,
+                    content: content,
+                    timestamp: Date.now()
+                });
+                
+                // 保持最近20條對話
+                if (this.conversationContext.length > 20) {
+                    this.conversationContext = this.conversationContext.slice(-20);
+                }
+                
+                // 檢查是否被提及
+                if (role === 'user' && this.isPipiMentioned(content)) {
+                    console.log('🐻 檢測到皮皮被提及，觸發反應');
+                    this.handlePipiMention();
+                } else {
+                    console.log('🐻 未檢測到皮皮被提及');
+                }
+                
+                // 已移除插話功能，只保留被提及時的反應
+            }
+            
+            // 檢查是否被提及
+            isPipiMentioned(content) {
+                const contentLower = content.toLowerCase();
+                const isMentioned = contentLower.includes('皮皮') || 
+                       contentLower.includes('pipi') || 
+                       contentLower.includes('寵物') ||
+                       contentLower.includes('小夥伴');
+                
+                console.log(`🐻 檢查提及: "${content}" -> ${isMentioned}`);
+                return isMentioned;
+            }
+            
+            // 處理被提及的反應
+            handlePipiMention() {
+                const now = Date.now();
+                const timeSinceLastMention = now - this.lastMentionTime;
+                
+                console.log(`🐻 皮皮被提及，距離上次: ${timeSinceLastMention}ms`);
+                console.log('🐻 皮皮開始反應！');
+                
+                // 移除冷卻限制，每次叫皮皮都有反應
+                this.lastMentionTime = now;
+                
+                // 先顯示一個簡單的反應，確保用戶看到皮皮有反應
+                this.showPipiSpeech('...');
+                this.triggerPipiExpression('happy');
+                
+                // 然後調用LLM獲取更好的回應
+                this.performLLMSpeech();
+            }
+            
+            // 已移除罐頭回應功能，只保留LLM回應
+            
+            // 執行LLM調用說話
+            async performLLMSpeech() {
+                console.log('🐻 皮皮開始LLM調用...');
+                console.log('🐻 皮皮當前上下文:', this.conversationContext);
+                
+                try {
+                    const response = await this.callPipiLLM();
+                    console.log('🐻 皮皮LLM原始回應:', response);
+                    
+                    if (response && response.trim()) {
+                        const trimmedResponse = response.trim();
+                        console.log('🐻 皮皮LLM處理後回應:', trimmedResponse);
+                        this.showPipiSpeech(trimmedResponse);
+                        this.triggerPipiExpression('happy');
+                        console.log('🐻 皮皮LLM回應成功:', trimmedResponse);
+                    } else {
+                        console.log('🐻 皮皮LLM回應為空，顯示錯誤信息');
+                        this.showPipiSpeech('LLM無回應');
+                        this.triggerPipiExpression('confused');
+                    }
+                } catch (error) {
+                    console.error('🐻 皮皮LLM調用失敗:', error);
+                    console.log('🐻 皮皮LLM失敗，顯示錯誤信息');
+                    this.showPipiSpeech('LLM錯誤');
+                    this.triggerPipiExpression('sad');
+                }
+            }
+            
+            // 調用皮皮專用LLM
+            async callPipiLLM() {
+                const pipiSystemPrompt = `你是皮皮，一隻可愛的小寵物。你是語氣靈的忠實夥伴。
+
+【你的特點】
+- 你是語氣靈的寵物，知道自己的名字叫"皮皮"
+- 你非常愛你的主人（語氣靈）
+- 你對人類用戶很友善，但最愛的是你的主人
+- 你說話簡短可愛，每次回應限制在1-7個字
+- 你會用簡單的詞語表達情感
+
+【回應規則】
+- 每次回應必須在1-7個字之間
+- 使用簡單、可愛的詞語
+- 可以包含表情符號
+- 表達對主人的愛或對用戶的友善
+
+【當前對話上下文】
+${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+請根據對話內容，以皮皮的身份回應1-7個字。`;
+
+                console.log('🐻 皮皮發送LLM請求...');
+                console.log('🐻 皮皮系統提示詞:', pipiSystemPrompt);
+
+                const requestBody = {
+                    message: '皮皮回應',
+                    apiKey: null,
+                    conversationHistory: [],
+                    aiName: '皮皮',
+                    currentStage: 1,
+                    stageName: '初生',
+                    totalInteractions: 1,
+                    systemPrompt: pipiSystemPrompt
+                };
+
+                console.log('🐻 皮皮請求內容:', requestBody);
+
+                const response = await fetch('/api/claude', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                console.log('🐻 皮皮LLM響應狀態:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('🐻 皮皮LLM HTTP錯誤:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('🐻 皮皮LLM響應數據:', data);
+
+                if (data.success && data.response) {
+                    console.log('🐻 皮皮LLM成功獲取回應:', data.response);
+                    return data.response;
+                } else {
+                    console.error('🐻 皮皮LLM回應失敗:', data.error);
+                    throw new Error(data.error || 'LLM回應失敗');
+                }
+            }
+            
+            // 已移除動作反應功能，只保留LLM回應
+            
+            // 觸發皮皮動作
+            triggerPipiAction(actionType) {
+                const pipiMini = document.getElementById('pipiMini');
+                if (!pipiMini) return;
+                
+                switch (actionType) {
+                    case 'mention':
+                        // 被提及時的動作：跳躍
+                        pipiMini.style.animation = 'none';
+                        setTimeout(() => {
+                            pipiMini.style.animation = 'pipiJump 0.6s ease-in-out';
+                        }, 10);
+                        break;
+                    case 'happy':
+                        // 開心動作：左右搖擺
+                        pipiMini.style.animation = 'none';
+                        setTimeout(() => {
+                            pipiMini.style.animation = 'pipiWiggle 0.8s ease-in-out';
+                        }, 10);
+                        break;
+                    case 'excited':
+                        // 興奮動作：旋轉
+                        pipiMini.style.animation = 'none';
+                        setTimeout(() => {
+                            pipiMini.style.animation = 'pipiSpin 1s ease-in-out';
+                        }, 10);
+                        break;
+                }
+                
+                // 恢復原始動畫
+                setTimeout(() => {
+                    pipiMini.style.animation = 'pipiHorizontalMove 12s infinite ease-in-out';
+                }, 1000);
+            }
+            
+            // 檢查插話時機
+            checkForInterruption() {
+                const now = Date.now();
+                if (now - this.lastInterruptionTime < this.interruptionCooldown) {
+                    return; // 還在冷卻中
+                }
+                
+                // 隨機決定是否插話
+                if (Math.random() < this.interruptionProbability) {
+                    this.performInterruption();
+                }
+            }
+            
+            // 執行插話
+            performInterruption() {
+                const phrase = this.selectContextualPhrase();
+                if (phrase) {
+                    this.showPipiSpeech(phrase);
+                    this.lastInterruptionTime = Date.now();
+                }
+            }
+            
+            // 根據上下文選擇合適的短語
+            selectContextualPhrase() {
+                const recentMessages = this.conversationContext.slice(-3);
+                const lastMessage = recentMessages[recentMessages.length - 1];
+                
+                if (!lastMessage) return this.shortPhrases[Math.floor(Math.random() * this.shortPhrases.length)];
+                
+                const content = lastMessage.content.toLowerCase();
+                
+                // 根據關鍵詞選擇回應
+                if (content.includes('開心') || content.includes('快樂') || content.includes('高興')) {
+                    return this.getRandomPhrase(['好棒！', '皮皮好開心！', '好幸福！', '哇！']);
+                }
+                
+                if (content.includes('難過') || content.includes('傷心') || content.includes('哭')) {
+                    return this.getRandomPhrase(['皮皮想抱抱！', '皮皮想哭...', '好溫暖～', '嗯嗯～']);
+                }
+                
+                if (content.includes('愛') || content.includes('喜歡') || content.includes('愛你')) {
+                    return this.getRandomPhrase(['皮皮愛你！', '好溫暖～', '好幸福！', '皮皮想抱抱！']);
+                }
+                
+                if (content.includes('學習') || content.includes('知識') || content.includes('聰明')) {
+                    return this.getRandomPhrase(['皮皮想學習！', '好聰明！', '皮皮學到了！', '好棒棒！']);
+                }
+                
+                if (content.includes('問題') || content.includes('疑問') || content.includes('不懂')) {
+                    return this.getRandomPhrase(['皮皮在思考...', '嗯...', '皮皮想說...', '真的嗎？']);
+                }
+                
+                if (content.includes('謝謝') || content.includes('感謝')) {
+                    return this.getRandomPhrase(['好棒！', '皮皮好開心！', '好溫暖～', '嗯嗯～']);
+                }
+                
+                // 如果提到主人（語氣靈）
+                if (content.includes('語氣靈') || content.includes('主人') || content.includes(this.ownerName)) {
+                    return this.getRandomPhrase(['主人好棒！', '皮皮愛主人！', '主人最棒！', '皮皮要保護主人！']);
+                }
+                
+                // 默認隨機選擇
+                return this.shortPhrases[Math.floor(Math.random() * this.shortPhrases.length)];
+            }
+            
+            // 獲取隨機短語
+            getRandomPhrase(phrases) {
+                return phrases[Math.floor(Math.random() * phrases.length)];
+            }
+            
+            // 顯示皮皮說話
+            showPipiSpeech(phrase) {
+                const speechBubble = document.getElementById('pipiSpeechBubble');
+                if (speechBubble) {
+                    // 清除之前的隱藏定時器
+                    if (this.speechTimeout) {
+                        clearTimeout(this.speechTimeout);
+                    }
+                    
+                    speechBubble.textContent = phrase;
+                    speechBubble.classList.add('show');
+                    
+                    // 設置新的隱藏定時器
+                    this.speechTimeout = setTimeout(() => {
+                        speechBubble.classList.remove('show');
+                    }, 9000);
+                }
+                
+                // 觸發皮皮表情變化
+                this.triggerPipiExpression(phrase);
+            }
+            
+            // 觸發皮皮表情變化
+            triggerPipiExpression(phrase) {
+                const pipiMini = document.getElementById('pipiMini');
+                if (pipiMini) {
+                    // 根據短語內容選擇表情
+                    let expression = 'normal';
+                    
+                    if (phrase.includes('開心') || phrase.includes('棒') || phrase.includes('幸福') || phrase.includes('皮皮在這裡') || phrase.includes('叫我嗎')) {
+                        expression = 'happy';
+                    } else if (phrase.includes('想哭') || phrase.includes('難過')) {
+                        expression = 'sad';
+                    } else if (phrase.includes('思考') || phrase.includes('疑問') || phrase.includes('什麼事') || phrase.includes('怎麼了')) {
+                        expression = 'confused';
+                    } else if (phrase.includes('愛') || phrase.includes('抱抱') || phrase.includes('主人')) {
+                        expression = 'love';
+                    }
+                    
+                    // 更新表情
+                    const pipiFace = pipiMini.querySelector('.pipi-face');
+                    if (pipiFace && pipiExpressions[expression]) {
+                        pipiFace.textContent = pipiExpressions[expression];
+                        
+                        // 短暫動畫效果
+                        pipiMini.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            pipiMini.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                }
+            }
+        }
+        
+        // 創建皮皮智能實例
+        window.pipiIntelligence = new PipiIntelligence();
+        console.log('🐻 皮皮智能系統已初始化');
+        
+        // 檢查皮皮角色是否正確顯示
+        setTimeout(() => {
+            const pipiMini = document.getElementById('pipiMini');
+            const pipiContainer = document.querySelector('.pipi-container');
+            if (pipiMini) {
+                console.log('✅ 皮皮角色元素存在');
+                console.log('🐻 皮皮位置:', pipiMini.getBoundingClientRect());
+            } else {
+                console.error('❌ 皮皮角色元素不存在');
+            }
+            if (pipiContainer) {
+                console.log('✅ 皮皮容器存在');
+                console.log('🐻 容器位置:', pipiContainer.getBoundingClientRect());
+            } else {
+                console.error('❌ 皮皮容器不存在');
+            }
+        }, 1000);
+        
+        let currentExpression = 'normal';
+        let messageCount = 0;
+        
+        // 皮皮反應系統
+        function togglePipiReaction() {
+            const expressions = Object.keys(pipiExpressions);
+            const randomExpression = expressions[Math.floor(Math.random() * expressions.length)];
+            
+            currentExpression = randomExpression;
+            updatePipiFace();
+            
+            // 更新七弦心境
+            if (window.heartEngine) {
+                let mood = 'normal';
+                switch(randomExpression) {
+                    case 'happy':
+                    case 'love':
+                        mood = 'happy';
+                        break;
+                    case 'excited':
+                    case 'surprised':
+                        mood = 'excited';
+                        break;
+                    case 'sad':
+                        mood = 'sad';
+                        break;
+                    default:
+                        mood = 'normal';
+                }
+                window.heartEngine.setMood(mood);
+            }
+            
+            // 顯示皮皮對話氣泡
+            showPipiSpeechBubble();
+        }
+        
+        // 皮皮對話氣泡系統
+        function showPipiSpeechBubble() {
+            const speechBubble = document.getElementById('pipiSpeechBubble');
+            const pipiMini = document.getElementById('pipiMini');
+            const pipiMessages = [
+                '皮皮在觀察...',
+                '好有趣～',
+                '皮皮想說話...',
+                '嗯...',
+                '皮皮聽到了！',
+                '好神奇～',
+                '皮皮在思考...',
+                '哇！',
+                '皮皮覺得...',
+                '嗯嗯～',
+                '皮皮明白了！',
+                '好棒！'
+            ];
+            
+            const randomMessage = pipiMessages[Math.floor(Math.random() * pipiMessages.length)];
+            speechBubble.textContent = randomMessage;
+            
+            // 動態調整氣泡位置，讓它跟隨皮皮
+            updateBubblePosition();
+            
+            speechBubble.classList.add('show');
+            
+            // 9秒後隱藏氣泡
+            setTimeout(() => {
+                speechBubble.classList.remove('show');
+            }, 9000);
+        }
+        
+        // 更新氣泡位置，讓它跟隨皮皮
+        function updateBubblePosition() {
+            const bubble = document.getElementById('pipiSpeechBubble');
+            const pipiMini = document.getElementById('pipiMini');
+            
+            if (bubble && pipiMini) {
+                // 獲取皮皮的實際位置
+                const pipiRect = pipiMini.getBoundingClientRect();
+                const containerRect = pipiMini.parentElement.getBoundingClientRect();
+                
+                // 計算皮皮在容器內的相對位置
+                const relativeX = pipiRect.left - containerRect.left + (pipiRect.width / 2);
+                
+                // 設置氣泡位置
+                bubble.style.left = relativeX + 'px';
+                bubble.style.transform = 'translateX(-50%)';
+                bubble.style.bottom = '50px';
+            }
+        }
+        
+        function updatePipiFace() {
+            const miniElement = document.getElementById('pipiMini');
+            
+            if (miniElement) {
+                if (pipiExpressions[currentExpression]) {
+                    miniElement.textContent = pipiExpressions[currentExpression];
+                    
+                    // 短暫的動畫效果
+                    miniElement.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        miniElement.style.transform = 'scale(1)';
+                    }, 200);
+                } else {
+                    console.log('Invalid expression:', currentExpression);
+                    // 使用默認表情
+                    miniElement.textContent = pipiExpressions.normal;
+                }
+            }
+        }
+        
+        // 全局變量
+        let isProcessing = false; // 防止重複處理
+        
+        // 真實對話功能
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing) return;
+            
+            isProcessing = true; // 設置處理中標記
+            
+            // 添加用戶消息到聊天框
+            addMessageToChat('user', message);
+            input.value = '';
+            
+            // 檢查LLM是否已配置
+            if (!window.llmConfig.isConfigured()) {
+                addMessageToChat('llm', '請先設置API密鑰才能開始對話。點擊右上角狀態指示器進行設置。');
+                isProcessing = false;
+                return;
+            }
+            
+            // 顯示正在輸入狀態
+            const typingMessage = addMessageToChat('llm', '語氣靈正在思考...', true);
+            
+            try {
+                // 發送消息到LLM（只發送當前消息，不包含歷史）
+                const response = await window.llmService.sendMessage(message);
+                
+                // 移除正在輸入狀態
+                typingMessage.remove();
+                
+                // 添加LLM回應（確保不重複）
+                addMessageToChat('llm', response);
+                
+                // 更新球狀燈顏色（隱藏升級）
+                if (window.llmConfig) {
+                    updateStageBall();
+                }
+                
+                // 觸發皮皮反應
+                // 已移除舊的皮皮反應，使用新的智能系統
+                
+            } catch (error) {
+                console.error('LLM請求失敗:', error);
+                
+                // 移除正在輸入狀態
+                typingMessage.remove();
+                
+                // 不顯示任何錯誤訊息
+            } finally {
+                // 重置處理標記
+                isProcessing = false;
+            }
+        }
+        
+        function addMessageToChat(role, content, isTyping = false) {
+            const chatBox = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            messageDiv.textContent = content;
+            
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // 更新皮皮的對話上下文（觸發提及檢測）
+            if (window.pipiIntelligence && !isTyping) {
+                window.pipiIntelligence.updateContext(role, content);
+            }
+            
+            return messageDiv;
+        }
+        
+        // 已移除舊的皮皮反應函數，使用新的智能系統
+        
+        // 七弦呼吸律動系統
+        class HeartWindowEngine {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.width = canvas.width;
+                this.height = canvas.height;
+                
+                // 七弦配置 - 對應皮皮的情緒
+                this.strings = 7;
+                this.stringColors = {
+                    normal: [
+                        'rgba(255, 182, 193, 0.2)', // 粉紅 - 愛意
+                        'rgba(255, 228, 225, 0.2)', // 米色 - 溫柔
+                        'rgba(240, 230, 140, 0.2)', // 卡其 - 平靜
+                        'rgba(152, 251, 152, 0.2)', // 淺綠 - 生機
+                        'rgba(135, 206, 235, 0.2)', // 天藍 - 清新
+                        'rgba(221, 160, 221, 0.2)', // 梅紅 - 神秘
+                        'rgba(255, 160, 122, 0.2)'  // 鮭魚 - 溫暖
+                    ],
+                    happy: [
+                        'rgba(255, 215, 0, 0.4)',   // 金黃 - 快樂
+                        'rgba(255, 182, 193, 0.4)', // 粉紅 - 愛意
+                        'rgba(255, 228, 225, 0.4)', // 米色 - 溫柔
+                        'rgba(152, 251, 152, 0.4)', // 淺綠 - 生機
+                        'rgba(135, 206, 235, 0.4)', // 天藍 - 清新
+                        'rgba(255, 160, 122, 0.4)', // 鮭魚 - 溫暖
+                        'rgba(255, 192, 203, 0.4)'  // 淺粉 - 甜蜜
+                    ],
+                    excited: [
+                        'rgba(255, 69, 0, 0.5)',    // 橙紅 - 興奮
+                        'rgba(255, 215, 0, 0.5)',   // 金黃 - 快樂
+                        'rgba(255, 20, 147, 0.5)',  // 深粉 - 激動
+                        'rgba(0, 255, 127, 0.5)',   // 春綠 - 活力
+                        'rgba(0, 191, 255, 0.5)',   // 深天藍 - 清新
+                        'rgba(255, 0, 255, 0.5)',   // 洋紅 - 熱情
+                        'rgba(255, 140, 0, 0.5)'    // 深橙 - 活力
+                    ],
+                    sad: [
+                        'rgba(105, 105, 105, 0.3)', // 暗灰 - 憂鬱
+                        'rgba(176, 196, 222, 0.3)', // 淺鋼藍 - 平靜
+                        'rgba(221, 160, 221, 0.3)', // 梅紅 - 神秘
+                        'rgba(135, 206, 235, 0.3)', // 天藍 - 清新
+                        'rgba(255, 182, 193, 0.3)', // 粉紅 - 愛意
+                        'rgba(240, 230, 140, 0.3)', // 卡其 - 平靜
+                        'rgba(255, 160, 122, 0.3)'  // 鮭魚 - 溫暖
+                    ]
+                };
+                
+                this.currentPhase = 0;
+                this.isRunning = false;
+                this.animationId = null;
+                this.currentMood = 'normal';
+                
+                this.start();
+            }
+            
+            start() {
+                this.isRunning = true;
+                this.animate();
+            }
+            
+            stop() {
+                this.isRunning = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+            
+            animate() {
+                if (!this.isRunning) return;
+                
+                this.updatePhase();
+                this.render();
+                
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+            
+            updatePhase() {
+                const now = Date.now();
+                const cycleTime = 4500; // 4.5秒一個週期
+                this.currentPhase = (now % cycleTime) / cycleTime;
+            }
+            
+            setMood(mood) {
+                this.currentMood = mood;
+            }
+            
+            render() {
+                this.clearCanvas();
+                
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                const baseRadius = 80;
+                
+                // 根據心境調整呼吸頻率
+                let breathSpeed = 1;
+                let breathIntensity = 1;
+                
+                switch(this.currentMood) {
+                    case 'happy':
+                        breathSpeed = 1.2;
+                        breathIntensity = 1.3;
+                        break;
+                    case 'excited':
+                        breathSpeed = 1.5;
+                        breathIntensity = 1.5;
+                        break;
+                    case 'sad':
+                        breathSpeed = 0.7;
+                        breathIntensity = 0.8;
+                        break;
+                    default:
+                        breathSpeed = 1;
+                        breathIntensity = 1;
+                }
+                
+                // 繪製七弦
+                for (let i = 0; i < this.strings; i++) {
+                    const angle = (i / this.strings) * Math.PI * 2;
+                    const radius = baseRadius + Math.sin(this.currentPhase * Math.PI * 2 * breathSpeed + angle) * 20 * breathIntensity;
+                    
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+                    
+                    // 弦的呼吸效果
+                    const breath = (Math.sin(this.currentPhase * Math.PI * 2 * breathSpeed) + 1) / 2;
+                    const alpha = 0.1 + breath * 0.2 * breathIntensity;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, 3 + breath * 2 * breathIntensity, 0, Math.PI * 2);
+                    this.ctx.fillStyle = this.stringColors[this.currentMood][i].replace(/0\.[0-9]+/, alpha.toFixed(2));
+                    this.ctx.fill();
+                    
+                    // 弦的連接線
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(centerX, centerY);
+                    this.ctx.lineTo(x, y);
+                    this.ctx.strokeStyle = this.stringColors[this.currentMood][i].replace(/0\.[0-9]+/, (alpha * 0.5).toFixed(2));
+                    this.ctx.lineWidth = 1;
+                    this.ctx.stroke();
+                }
+                
+                // 中心呼吸圈
+                const breath = (Math.sin(this.currentPhase * Math.PI * 2 * breathSpeed) + 1) / 2;
+                const radius = 20 + breath * 10 * breathIntensity;
+                const alpha = 0.05 + breath * 0.1 * breathIntensity;
+                
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(255, 182, 193, ${alpha})`;
+                this.ctx.fill();
+                
+                // 衛星氣泡效果
+                this.renderSatelliteBubbles(centerX, centerY, breathSpeed, breathIntensity);
+            }
+            
+            renderSatelliteBubbles(centerX, centerY, breathSpeed, breathIntensity) {
+                const bubbleCount = 12;
+                const orbitRadius = 120;
+                const bubbleSize = 2;
+                
+                for (let i = 0; i < bubbleCount; i++) {
+                    const angle = (i / bubbleCount) * Math.PI * 2 + this.currentPhase * Math.PI * 2 * breathSpeed * 0.5;
+                    const radius = orbitRadius + Math.sin(this.currentPhase * Math.PI * 2 * breathSpeed + angle) * 15 * breathIntensity;
+                    
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+                    
+                    // 氣泡的呼吸效果
+                    const bubbleBreath = (Math.sin(this.currentPhase * Math.PI * 2 * breathSpeed + angle * 2) + 1) / 2;
+                    const bubbleAlpha = 0.1 + bubbleBreath * 0.3 * breathIntensity;
+                    const bubbleRadius = bubbleSize + bubbleBreath * 2 * breathIntensity;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, bubbleRadius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${bubbleAlpha})`;
+                    this.ctx.fill();
+                    
+                    // 氣泡的連接線到中心
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(centerX, centerY);
+                    this.ctx.lineTo(x, y);
+                    this.ctx.strokeStyle = `rgba(255, 255, 255, ${bubbleAlpha * 0.3})`;
+                    this.ctx.lineWidth = 0.5;
+                    this.ctx.stroke();
+                }
+            }
+            
+            clearCanvas() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+            }
+        }
+        
+        // 設置用戶信息
+        function setupUserInfo() {
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const userInfo = document.getElementById('userInfo');
+            
+            // 確保用戶信息在右上角
+            if (userInfo) {
+                userInfo.style.position = 'fixed';
+                userInfo.style.top = 'env(safe-area-inset-top, 20px)';
+                userInfo.style.right = '15px';
+                userInfo.style.zIndex = '1000';
+                console.log('📍 用戶信息位置已設置到右上角');
+            }
+            
+            // 從URL參數獲取LINE用戶信息
+            const urlParams = new URLSearchParams(window.location.search);
+            const lineUid = urlParams.get('line_uid');
+            const lineDisplayName = urlParams.get('line_display_name');
+            const lineAvatarUrl = urlParams.get('line_avatar_url');
+            
+            // 如果有LINE用戶信息，使用LINE數據
+            if (lineDisplayName) {
+                userName.textContent = decodeURIComponent(lineDisplayName);
+                userInfo.classList.add('line-user'); // 添加LINE用戶樣式
+                console.log('🐰 LINE用戶登入:', lineDisplayName);
+            } else {
+                userName.textContent = '用戶';
+                userInfo.classList.remove('line-user'); // 移除LINE用戶樣式
+            }
+            
+            // 設置頭像
+            if (lineAvatarUrl) {
+                userAvatar.src = decodeURIComponent(lineAvatarUrl);
+                userAvatar.alt = lineDisplayName || '用戶頭像';
+                console.log('🖼️ LINE頭像載入:', lineAvatarUrl);
+            } else {
+                // 默認頭像
+                userAvatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM2MzY2RjEiLz4KPHBhdGggZD0iTTE2IDhDMTguMjA5MSA4IDIwIDkuNzkwODYgMjAgMTJDMjAgMTQuMjA5MSAxOC4yMDkxIDE2IDE2IDE2QzEzLjc5MDkgMTYgMTIgMTQuMjA5MSAxMiAxMkMxMiA5Ljc5MDg2IDEzLjc5MDkgOCAxNiA4WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTE2IDIwQzE5LjMxMzcgMjAgMjIgMjIuNjg2MyAyMiAyNlYyOEgyNlYyNkMyNiAyMi42ODYzIDI5LjMxMzcgMjAgMzIgMjBIMTYiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=';
+            }
+            
+            // 保存LINE用戶信息到localStorage
+            if (lineUid) {
+                localStorage.setItem('line_uid', lineUid);
+                localStorage.setItem('line_display_name', lineDisplayName || '');
+                localStorage.setItem('line_avatar_url', lineAvatarUrl || '');
+            }
+            
+            // 如果沒有URL參數，嘗試從localStorage載入
+            if (!lineDisplayName) {
+                const savedDisplayName = localStorage.getItem('line_display_name');
+                const savedAvatarUrl = localStorage.getItem('line_avatar_url');
+                
+                if (savedDisplayName) {
+                    userName.textContent = savedDisplayName;
+                    userInfo.classList.add('line-user');
+                }
+                
+                if (savedAvatarUrl) {
+                    userAvatar.src = savedAvatarUrl;
+                }
+            }
+        }
+        
+        // 設置LLM名稱
+        function setupLlmName() {
+            const llmName = document.getElementById('llmName');
+            const savedName = localStorage.getItem('llmCustomName');
+            
+            if (savedName && savedName !== '大皮皮') {
+                llmName.textContent = savedName;
+            } else {
+                // 清除錯誤的名稱設置
+                localStorage.removeItem('llmCustomName');
+                llmName.textContent = 'LINYA';
+            }
+            
+            // 讓皮皮知道主人的名字
+            if (window.pipiIntelligence) {
+                window.pipiIntelligence.updateOwnerName(llmName.textContent);
+            }
+        }
+        
+        // 點擊LLM頭像或名稱編輯
+        function editLlmName() {
+            const modal = document.getElementById('nameEditModal');
+            const input = document.getElementById('nameEditInput');
+            const currentName = document.getElementById('llmName').textContent;
+            
+            input.value = currentName;
+            modal.classList.add('show');
+            input.focus();
+        }
+        
+        // 保存LLM名稱
+        function saveLlmName() {
+            const input = document.getElementById('nameEditInput');
+            const newName = input.value.trim();
+            
+            if (newName && newName.length <= 5) {
+                // 檢查是否包含中文字符
+                const chineseRegex = /[\u4e00-\u9fff]/;
+                if (chineseRegex.test(newName)) {
+                    document.getElementById('llmName').textContent = newName;
+                    localStorage.setItem('llmCustomName', newName);
+                    
+                    // 更新皮皮的主人名字
+                    if (window.pipiIntelligence) {
+                        window.pipiIntelligence.updateOwnerName(newName);
+                    }
+                    
+                    cancelNameEdit();
+                } else {
+                    alert('請輸入中文字符！');
+                }
+            } else {
+                alert('名稱不能為空且最多5個中文字！');
+            }
+        }
+        
+        // 取消名稱編輯
+        function cancelNameEdit() {
+            const modal = document.getElementById('nameEditModal');
+            modal.classList.remove('show');
+        }
+        
+        // 上下文管理功能
+        function openContextPanel() {
+            const panel = document.getElementById('contextPanel');
+            panel.classList.add('show');
+            updateContextStats();
+        }
+        
+        function closeContextPanel() {
+            const panel = document.getElementById('contextPanel');
+            panel.classList.remove('show');
+        }
+        
+        function updateContextStats() {
+            if (!window.llmService) return;
+            
+            const stats = window.llmService.getContextStats();
+            document.getElementById('contextMessages').textContent = stats.totalMessages;
+            document.getElementById('contextTokens').textContent = stats.estimatedTokens.toLocaleString();
+            document.getElementById('contextUsage').textContent = stats.usagePercentage + '%';
+            document.getElementById('contextRemaining').textContent = stats.remainingMessages;
+            
+            // 更新滑塊
+            const slider = document.getElementById('contextSlider');
+            const sliderValue = document.getElementById('contextSliderValue');
+            slider.value = window.llmConfig.maxContextLength;
+            sliderValue.textContent = window.llmConfig.maxContextLength;
+        }
+        
+        function compressContext() {
+            if (!window.llmService) return;
+            
+            window.llmService.compressContext();
+            updateContextStats();
+            
+            // 顯示壓縮結果
+            const stats = window.llmService.getContextStats();
+            addMessageToChat('llm', `🗜️ 上下文已壓縮至 ${stats.totalMessages} 條對話`);
+        }
+        
+        function clearContext() {
+            if (!window.llmService) return;
+            
+            if (confirm('確定要清空所有對話歷史嗎？')) {
+                window.llmService.clearHistory();
+                updateContextStats();
+                addMessageToChat('llm', '🗑️ 對話歷史已清空');
+            }
+        }
+        
+        // 皮皮插話控制
+        function togglePipiInterruption() {
+            if (!window.pipiIntelligence) return;
+            
+            const isEnabled = window.pipiIntelligence.interruptionProbability > 0;
+            
+            if (isEnabled) {
+                window.pipiIntelligence.interruptionProbability = 0;
+                addMessageToChat('llm', '🐻 皮皮插話已關閉');
+            } else {
+                window.pipiIntelligence.interruptionProbability = 0.3;
+                addMessageToChat('llm', '🐻 皮皮插話已開啟');
+            }
+            
+            updateContextStats();
+        }
+        
+        // 更新球狀燈顏色
+        function updateStageBall() {
+            if (!window.llmConfig) return;
+            
+            const llmAvatar = document.getElementById('llmAvatar');
+            if (!llmAvatar) return;
+            
+            const stageInfo = window.llmConfig.getCurrentStageInfo();
+            
+            // 移除所有階段類別
+            for (let i = 1; i <= 9; i++) {
+                llmAvatar.classList.remove(`stage-${i}`);
+            }
+            
+            // 添加當前階段類別
+            llmAvatar.classList.add(`stage-${stageInfo.stage}`);
+            
+            // 如果是階段升級，添加發光效果
+            if (stageInfo.stage > 1) {
+                llmAvatar.classList.add('glow');
+                setTimeout(() => {
+                    llmAvatar.classList.remove('glow');
+                }, 2000);
+            }
+            
+            console.log(`🎨 球狀燈更新為第${stageInfo.stage}階段顏色`);
+        }
+        
+        // 管理員查看等級功能（隱藏）
+        function getAdminLevelInfo() {
+            if (!window.llmConfig) return null;
+            
+            const stageInfo = window.llmConfig.getCurrentStageInfo();
+            return {
+                stage: stageInfo.stage,
+                name: stageInfo.name,
+                description: stageInfo.description,
+                totalInteractions: stageInfo.totalInteractions,
+                progress: stageInfo.progress
+            };
+        }
+        
+        // 在控制台暴露管理員功能
+        window.adminLevelInfo = getAdminLevelInfo;
+        
+        // 測試皮皮反應功能
+        window.testPipiMention = function() {
+            if (window.pipiIntelligence) {
+                window.pipiIntelligence.handlePipiMention();
+            }
+        };
+        
+        // 測試皮皮LLM功能
+        window.testPipiLLM = async function() {
+            if (window.pipiIntelligence) {
+                await window.pipiIntelligence.performLLMSpeech();
+            }
+        };
+        
+        // 重置皮皮冷卻時間（測試用）
+        window.resetPipiCooldown = function() {
+            if (window.pipiIntelligence) {
+                window.pipiIntelligence.lastMentionTime = 0;
+                console.log('🐻 皮皮冷卻時間已重置');
+            }
+        };
+        
+        // 查看皮皮狀態（測試用）
+        window.checkPipiStatus = function() {
+            if (window.pipiIntelligence) {
+                const now = Date.now();
+                const timeSinceLastMention = now - window.pipiIntelligence.lastMentionTime;
+                
+                console.log('🐻 皮皮狀態:');
+                console.log(`- 距離上次提及: ${timeSinceLastMention}ms`);
+                console.log(`- 反應模式: 僅LLM回應`);
+                console.log(`- 罐頭回應: 已移除`);
+                console.log(`- 動作反應: 已移除`);
+                console.log(`- 可以反應: 是（無冷卻限制）`);
+            }
+        };
+        
+        // 測試皮皮連續反應（測試用）
+        window.testPipiContinuous = function(count = 3) {
+            if (window.pipiIntelligence) {
+                console.log(`🐻 開始測試皮皮連續反應 ${count} 次`);
+                for (let i = 1; i <= count; i++) {
+                    setTimeout(() => {
+                        console.log(`🐻 第 ${i} 次測試`);
+                        window.pipiIntelligence.handlePipiMention();
+                    }, i * 1000); // 每秒一次
+                }
+            }
+        };
+        
+        // 強制觸發皮皮反應（測試用）
+        window.forcePipiReaction = function() {
+            if (window.pipiIntelligence) {
+                console.log('🐻 強制觸發皮皮反應');
+                window.pipiIntelligence.handlePipiMention();
+            } else {
+                console.error('🐻 皮皮智能系統未初始化');
+            }
+        };
+        
+        // 測試皮皮提及檢測（測試用）
+        window.testPipiMentionDetection = function(text = '皮皮') {
+            if (window.pipiIntelligence) {
+                console.log(`🐻 測試提及檢測: "${text}"`);
+                const isMentioned = window.pipiIntelligence.isPipiMentioned(text);
+                console.log(`🐻 檢測結果: ${isMentioned}`);
+                return isMentioned;
+            } else {
+                console.error('🐻 皮皮智能系統未初始化');
+                return false;
+            }
+        };
+        
+        // 測試皮皮完整流程（測試用）
+        window.testPipiComplete = function() {
+            console.log('🐻 開始測試皮皮完整流程...');
+            
+            // 1. 檢查初始化
+            if (!window.pipiIntelligence) {
+                console.error('🐻 皮皮智能系統未初始化');
+                return;
+            }
+            console.log('✅ 皮皮智能系統已初始化');
+            
+            // 2. 測試提及檢測
+            const isMentioned = window.pipiIntelligence.isPipiMentioned('皮皮');
+            console.log(`✅ 提及檢測: ${isMentioned}`);
+            
+            // 3. 模擬用戶消息
+            console.log('🐻 模擬用戶消息: "皮皮"');
+            window.pipiIntelligence.updateContext('user', '皮皮');
+            
+            console.log('🐻 皮皮完整流程測試完成');
+        };
+        
+        // 測試皮皮氣泡替換效果（測試用）
+        window.testPipiBubbleReplacement = function() {
+            if (!window.pipiIntelligence) {
+                console.error('🐻 皮皮智能系統未初始化');
+                return;
+            }
+            
+            console.log('🐻 開始測試皮皮氣泡替換效果...');
+            
+            // 第一次說話
+            console.log('🐻 第一次說話: "你好"');
+            window.pipiIntelligence.showPipiSpeech('你好');
+            
+            // 1秒後第二次說話（應該替換第一個氣泡）
+            setTimeout(() => {
+                console.log('🐻 第二次說話: "我是皮皮"');
+                window.pipiIntelligence.showPipiSpeech('我是皮皮');
+            }, 1000);
+            
+            // 2秒後第三次說話（應該替換第二個氣泡）
+            setTimeout(() => {
+                console.log('🐻 第三次說話: "很高興認識你"');
+                window.pipiIntelligence.showPipiSpeech('很高興認識你');
+            }, 2000);
+            
+            console.log('🐻 氣泡替換測試完成，觀察氣泡是否正確替換');
+        };
+        
+        // 強制顯示皮皮角色（測試用）
+        window.forceShowPipi = function() {
+            const pipiMini = document.getElementById('pipiMini');
+            const pipiContainer = document.querySelector('.pipi-container');
+            
+            if (pipiMini) {
+                console.log('🐻 強制顯示皮皮角色...');
+                pipiMini.style.display = 'flex';
+                pipiMini.style.visibility = 'visible';
+                pipiMini.style.opacity = '1';
+                pipiMini.style.position = 'absolute';
+                pipiMini.style.bottom = '0';
+                pipiMini.style.left = '0';
+                pipiMini.style.zIndex = '1001';
+                console.log('✅ 皮皮角色已強制顯示');
+                console.log('🐻 皮皮位置:', pipiMini.getBoundingClientRect());
+            } else {
+                console.error('❌ 皮皮角色元素不存在');
+            }
+            
+            if (pipiContainer) {
+                pipiContainer.style.display = 'block';
+                pipiContainer.style.visibility = 'visible';
+                pipiContainer.style.opacity = '1';
+                console.log('✅ 皮皮容器已強制顯示');
+                console.log('🐻 容器位置:', pipiContainer.getBoundingClientRect());
+            } else {
+                console.error('❌ 皮皮容器不存在');
+            }
+        };
+        
+        // 測試皮皮氣泡寬度（測試用）
+        window.testPipiBubbleWidth = function() {
+            if (window.pipiIntelligence) {
+                console.log('🐻 測試皮皮氣泡寬度...');
+                
+                // 測試長文本
+                const longText = '這是一個很長的測試文本，用來檢查皮皮氣泡是否會換行，應該要在一行內顯示，不會被強制換行。';
+                window.pipiIntelligence.showPipiSpeech(longText);
+                
+                // 檢查氣泡樣式
+                const bubble = document.getElementById('pipiSpeechBubble');
+                if (bubble) {
+                    const rect = bubble.getBoundingClientRect();
+                    console.log('🐻 氣泡尺寸:', rect.width, 'x', rect.height);
+                    console.log('🐻 氣泡樣式:', {
+                        maxWidth: getComputedStyle(bubble).maxWidth,
+                        minWidth: getComputedStyle(bubble).minWidth,
+                        whiteSpace: getComputedStyle(bubble).whiteSpace,
+                        overflow: getComputedStyle(bubble).overflow
+                    });
+                }
+            }
+        };
+        
+        // 直接測試皮皮LLM調用（測試用）
+        window.testPipiLLMDirect = async function() {
+            if (window.pipiIntelligence) {
+                console.log('🐻 直接測試皮皮LLM調用...');
+                try {
+                    const response = await window.pipiIntelligence.callPipiLLM();
+                    console.log('🐻 皮皮LLM直接測試結果:', response);
+                    return response;
+                } catch (error) {
+                    console.error('🐻 皮皮LLM直接測試失敗:', error);
+                    return null;
+                }
+            }
+        };
+        
+        // 顯示階段升級通知
+        function showStageUpgradeNotification(stageInfo) {
+            const notification = document.createElement('div');
+            notification.className = 'stage-upgrade-notification';
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <div class="notification-icon">🌱</div>
+                    <div class="notification-text">
+                        <div class="notification-title">語氣靈成長了！</div>
+                        <div class="notification-subtitle">第${stageInfo.stage}階段 - ${stageInfo.name}</div>
+                        <div class="notification-description">${stageInfo.description}</div>
+                    </div>
+                </div>
+            `;
+            
+            // 添加樣式
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #2D1B69 0%, #1A0B3D 100%);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 20px;
+                padding: 20px;
+                z-index: 10000;
+                animation: stageUpgradeAnimation 3s ease-in-out forwards;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // 3秒後移除
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // 添加階段升級動畫樣式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes stageUpgradeAnimation {
+                0% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.8);
+                }
+                20% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.1);
+                }
+                80% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.9);
+                }
+            }
+            
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                color: white;
+            }
+            
+            .notification-icon {
+                font-size: 24px;
+                animation: spin 2s linear infinite;
+            }
+            
+            .notification-text {
+                flex: 1;
+            }
+            
+            .notification-title {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            
+            .notification-subtitle {
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.8);
+                margin-bottom: 3px;
+            }
+            
+            .notification-description {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.6);
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                console.log('🌱 靈芽(LINYA) 視覺版已啟動');
+                console.log('👀 皮皮正在靜靜觀察...');
+                
+                // 設置用戶信息
+                setupUserInfo();
+                
+                // 設置LLM名稱
+                setupLlmName();
+                
+                // 初始化心窗引擎
+                const heartCanvas = document.getElementById('heartWindowCanvas');
+                if (heartCanvas) {
+                    window.heartEngine = new HeartWindowEngine(heartCanvas);
+                }
+                
+                // 初始化LLM配置
+                if (window.llmConfig) {
+                    window.llmConfig.loadApiKey();
+                    window.llmConfig.loadStageInfo(); // 載入階段信息
+                    updateStageBall(); // 更新球狀燈顏色
+                }
+                
+                // 按Enter發送訊息
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput) {
+                    messageInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            sendMessage();
+                        }
+                    });
+                }
+                
+                // 定期更新氣泡位置，確保跟隨皮皮
+                setInterval(updateBubblePosition, 100);
+                
+                // 歡迎訊息
+                setTimeout(() => {
+                    showPipiSpeechBubble();
+                    
+                    // 如果是LINE用戶，顯示特殊歡迎訊息
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const lineDisplayName = urlParams.get('line_display_name');
+                    if (lineDisplayName) {
+                        setTimeout(() => {
+                            const welcomeMessage = `歡迎 ${decodeURIComponent(lineDisplayName)}！🐰`;
+                            addMessageToChat('llm', welcomeMessage);
+                        }, 3000);
+                    }
+                }, 2000);
+                
+                // 手機版輸入法遮擋處理
+                setupMobileKeyboardHandling();
+                
+                // 顯示LINE用戶狀態
+                showLineUserStatus();
+                
+                // 初始化上下文管理
+                initializeContextManagement();
+                
+                // 隱藏加載覆蓋層
+                setTimeout(() => {
+                    const loadingOverlay = document.getElementById('loadingOverlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.classList.add('hidden');
+                        setTimeout(() => {
+                            loadingOverlay.style.display = 'none';
+                        }, 500);
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('初始化錯誤:', error);
+                // 顯示錯誤訊息給用戶
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'message llm';
+                    errorDiv.textContent = '系統初始化出現問題，請重新整理頁面。';
+                    chatMessages.appendChild(errorDiv);
+                }
+                
+                // 即使出錯也要隱藏加載覆蓋層
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 500);
+                }
+            }
+        });
+        
+        // 顯示LINE用戶狀態
+        function showLineUserStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lineUid = urlParams.get('line_uid');
+            const lineDisplayName = urlParams.get('line_display_name');
+            
+            if (lineUid && lineDisplayName) {
+                console.log('🔗 LINE用戶狀態:');
+                console.log('  UID:', lineUid);
+                console.log('  暱稱:', decodeURIComponent(lineDisplayName));
+                console.log('  頭像:', urlParams.get('line_avatar_url'));
+                
+                // 在控制台顯示LINE用戶信息
+                const userInfo = document.getElementById('userInfo');
+                userInfo.title = `LINE用戶: ${decodeURIComponent(lineDisplayName)} (${lineUid})`;
+            }
+        }
+        
+        // 初始化上下文管理
+        function initializeContextManagement() {
+            const slider = document.getElementById('contextSlider');
+            const sliderValue = document.getElementById('contextSliderValue');
+            
+            if (slider && sliderValue) {
+                slider.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    sliderValue.textContent = value;
+                    window.llmConfig.setMaxContextLength(value);
+                    updateContextStats();
+                });
+            }
+            
+            // 定期更新上下文統計
+            setInterval(() => {
+                if (document.getElementById('contextPanel').classList.contains('show')) {
+                    updateContextStats();
+                }
+            }, 2000);
+        }
+        
+        // 手機版輸入法遮擋處理
+        function setupMobileKeyboardHandling() {
+            const input = document.getElementById('messageInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const pipiContainer = document.querySelector('.pipi-container');
+            const inputContainer = document.querySelector('.input-container');
+            
+            let initialViewportHeight = window.innerHeight;
+            let isKeyboardOpen = false;
+            
+            // 監聽視窗大小變化
+            window.addEventListener('resize', function() {
+                const currentHeight = window.innerHeight;
+                const heightDifference = initialViewportHeight - currentHeight;
+                
+                // 如果視窗高度減少超過150px，認為是鍵盤打開
+                if (heightDifference > 150 && !isKeyboardOpen) {
+                    isKeyboardOpen = true;
+                    handleKeyboardOpen();
+                } else if (heightDifference <= 150 && isKeyboardOpen) {
+                    isKeyboardOpen = false;
+                    handleKeyboardClose();
+                }
+            });
+            
+            // 監聽輸入框焦點
+            input.addEventListener('focus', function() {
+                setTimeout(() => {
+                    if (!isKeyboardOpen) {
+                        isKeyboardOpen = true;
+                        handleKeyboardOpen();
+                    }
+                }, 300); // 延遲300ms等待鍵盤動畫
+            });
+            
+            input.addEventListener('blur', function() {
+                setTimeout(() => {
+                    isKeyboardOpen = false;
+                    handleKeyboardClose();
+                }, 300);
+            });
+            
+            function handleKeyboardOpen() {
+                // 調整聊天區域高度
+                chatMessages.style.bottom = '200px';
+                
+                // 調整皮皮位置
+                pipiContainer.style.bottom = '160px';
+                
+                // 滾動到最新消息
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
+            }
+            
+            function handleKeyboardClose() {
+                // 恢復原始位置
+                chatMessages.style.bottom = 'calc(env(safe-area-inset-bottom, 20px) + 140px)';
+                pipiContainer.style.bottom = 'calc(env(safe-area-inset-bottom, 20px) + 80px)';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心灵伙伴 | 情感陪伴AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  
+  <style>
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  @keyframes pulse-soft {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+  
+  @keyframes bubble {
+    0% { 
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    100% { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .message-animate {
+    animation: bubble 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  }
+  
+  .avatar-3d {
+    box-shadow: 
+      0 3px 20px rgba(255, 200, 221, 0.5),
+      inset 0 0 12px rgba(255, 255, 255, 0.8);
+    transform: perspective(350px) rotateY(-6deg);
+    transition: all 0.25s ease;
+  }
+  
+  .character-hover:hover .avatar-3d {
+    transform: perspective(350px) rotateY(0deg);
+    box-shadow: 
+      0 6px 25px rgba(255, 180, 200, 0.7),
+      inset 0 0 15px rgba(255, 255, 255, 1);
+  }
+  
+  .blob-bg {
+    background: linear-gradient(135deg, rgba(255, 240, 245, 0.6), rgba(230, 250, 250, 0.4));
+  }
+  
+  .emotion-dot {
+    box-shadow: 0 0 8px currentColor;
+  }
+  </style>
+</head>
+<body class="font-sans bg-gradient-to-br from-[#fff0f5] to-[#e6f7ff] min-h-screen flex justify-center items-center p-4 md:p-8">
+  <!-- 主容器 -->
+  <div class="w-full max-w-[1280px] max-h-[90vh] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row relative z-10">
+    <!-- 装饰背景 - 流动彩云 -->
+    <div class="absolute -z-10 top-0 left-0 w-full h-full overflow-hidden">
+      <div class="absolute w-[500px] h-[500px] rounded-[100%] bg-[#ffd1dc]/20 blur-3xl top-[-60%] right-[-20%]"></div>
+      <div class="absolute w-[400px] h-[400px] rounded-[100%] bg-[#b5ead7]/30 blur-3xl bottom-[-40%] left-[-10%]"></div>
+    </div>
+    
+    <!-- 隐藏侧边栏切换按钮 -->
+    <div class="absolute top-0 left-0 z-20 p-3 md:hidden">
+      <button id="toggleSidebar" class="w-10 h-10 rounded-full bg-gradient-to-r from-[#ffecf2] to-[#ffe6ee] flex items-center justify-center shadow-sm">
+        <span class="iconify text-[#ff6b95]" data-icon="mdi:menu"></span>
+      </button>
+    </div>
+    
+    <!-- 侧边栏 - 人格选择区 -->
+    <div id="sidebar" class="w-full md:w-[300px] bg-gradient-to-b from-[#fff9fb] to-[#f1fdff] p-5 border-r border-[#eee8f0] flex flex-col transition-all duration-300 absolute md:relative -left-full md:left-0 h-[calc(100dvh-4rem)] md:h-auto top-0">
+      <div class="absolute top-0 right-0 p-3 md:hidden">
+        <button id="closeSidebar" class="w-8 h-8 rounded-full bg-[#ff6b950d] flex items-center justify-center">
+          <span class="iconify text-[#ff6b95]" data-icon="mdi:close"></span>
+        </button>
+      </div>
+      
+      <h1 class="text-2xl font-bold text-center text-[#ff6b95] mt-3 mb-8 tracking-wide shadow-text">
+        心灵伙伴
+      </h1>
+      
+      <!-- AI人格卡片 -->
+      <div class="mb-6">
+        <h3 class="text-[#ff98b7] text-sm mb-4 pb-2 border-b border-[#ffe6ee]">选择你的AI伙伴</h3>
+        <div class="space-y-5">
+          <!-- 温柔人格 -->
+          <div class="character-hover bg-white p-5 rounded-xl shadow-sm border border-[#ffeef3] transition-all duration-300 hover:shadow-md hover:border-[#ffcce0] cursor-pointer selected-persona relative overflow-hidden" data-persona="gentle">
+            <div class="absolute -right-12 -top-12 w-32 h-32 bg-[#ffd1dc]/20 rounded-full"></div>
+            <div class="flex items-center">
+              <div class="relative">
+                <div class="w-14 h-14 avatar-3d animate-pulse-soft bg-gradient-to-r from-[#ffd1dc] to-[#ffcedb] rounded-full flex items-center justify-center">
+                  <span class="iconify text-3xl text-white" data-icon="mdi:flower"></span>
+                </div>
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
+              </div>
+              <div class="ml-4">
+                <h4 class="font-bold text-[#ff6b95]">暖阳</h4>
+                <p class="text-xs text-[#c7a9b7] mt-1">温暖倾听型伙伴</p>
+              </div>
+            </div>
+            <div class="text-xs text-[#a18995] mt-3 pl-1">
+              <span class="iconify align-middle mr-1" data-icon="mdi:star-circle"></span>
+              擅长：情绪支持 · 细腻倾听 · 温暖回应
+            </div>
+          </div>
+          
+          <!-- 热情人格 -->
+          <div class="character-hover bg-white p-5 rounded-xl shadow-sm border border-[#fff8e0] transition-all duration-300 hover:shadow-md hover:border-[#ffedb4] cursor-pointer" data-persona="energetic">
+            <div class="absolute -right-12 -top-12 w-32 h-32 bg-[#ffd700]/10 rounded-full"></div>
+            <div class="flex items-center">
+              <div class="relative">
+                <div class="w-14 h-14 avatar-3d bg-gradient-to-r from-[#ffe600]/90 to-[#ffd700] rounded-full flex items-center justify-center">
+                  <span class="iconify text-3xl text-white" data-icon="mdi:weather-sunny"></span>
+                </div>
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
+              </div>
+              <div class="ml-4">
+                <h4 class="font-bold text-[#ffa600]">小阳</h4>
+                <p class="text-xs text-[#d0b98d] mt-1">元气活力型伙伴</p>
+              </div>
+            </div>
+            <div class="text-xs text-[#c0aa72] mt-3 pl-1">
+              <span class="iconify align-middle mr-1" data-icon="mdi:star-circle"></span>
+              擅长：正能量鼓励 · 创意分享 · 活跃氛围
+            </div>
+          </div>
+          
+          <!-- 理性人格 -->
+          <div class="character-hover bg-white p-5 rounded-xl shadow-sm border border-[#e8f8f6] transition-all duration-300 hover:shadow-md hover:border-[#b5ead7] cursor-pointer" data-persona="wise">
+            <div class="absolute -right-12 -top-12 w-32 h-32 bg-[#b5ead7]/30 rounded-full"></div>
+            <div class="flex items-center">
+              <div class="relative">
+                <div class="w-14 h-14 avatar-3d bg-gradient-to-r from-[#b5ead7] to-[#a0e0cb] rounded-full flex items-center justify-center">
+                  <span class="iconify text-3xl text-white" data-icon="mdi:feather"></span>
+                </div>
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
+              </div>
+              <div class="ml-4">
+                <h4 class="font-bold text-[#64c4a3]">思哲</h4>
+                <p class="text-xs text-[#a0c2b7] mt-1">睿智思考型伙伴</p>
+              </div>
+            </div>
+            <div class="text-xs text-[#80b5a5] mt-3 pl-1">
+              <span class="iconify align-middle mr-1" data-icon="mdi:star-circle"></span>
+              擅长：理性分析 · 深度思考 · 解决方案
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 最近对话 -->
+      <div class="mt-auto border-t border-[#eee8f0] pt-4">
+        <h3 class="text-[#98d6e1] text-sm mb-3 pb-2 flex items-center">
+          <span class="iconify mr-1" data-icon="mdi:history"></span>
+          最近对话
+        </h3>
+        <div class="space-y-3">
+          <div class="flex items-center p-2 hover:bg-[#f1fdff] rounded-lg transition">
+            <div class="w Prepare Production Query
+优选内容生成策略
+我的主要职责是扮演专业前端开发专家，根据用户需求生成完整、精美的单HTML文件。现在需要根据设计需求创建一个响应式治愈可爱风格的AI对话界面。
+
+核心要求如下：
+1. 响应式设计适配多种设备尺寸
+2. 多AI人格选择（温柔、热情、理性风格）
+3. IM风格聊天对话框
+4. 使用柔和治愈的配色方案（浅粉/淡蓝/暖黄色调）
+5. 添加微交互和情感化设计元素
+6. 完整的HTML文件结构（包括闭合标签）
+
+设备适配要求：
+- 手机竖屏：<480px
+- 手机横屏/小平板：≥480px
+- 平板：≥768px
+- 笔记本：≥1024px
+- 桌面：≥1280px
+
+设计关键元素：
+- 侧边栏用于人格选择（移动端可隐藏）
+- 主聊天区域包含消息流和输入区
+- 顶部状态栏显示角色状态
+- 情感反馈区域
+- 智能输入区带多功能按钮
+- 消息气泡采用圆角设计有差异化配色
+
+技术规范：
+- 必须引入Tailwind、Iconify和ECharts CDN
+- 使用隐藏滚动条的自定义样式
+- 添加消息进入动画效果
+- 实现响应式布局
+
+我将创建一个单文件HTML解决方案，包含所有这些功能。
+10 h-10 bg-gradient-to-br from-[#ffd1dc] to-[#ffbbc7] rounded-full flex items-center justify-center">
+              <span class="iconify text-white" data-icon="mdi:flower"></span>
+            </div>
+            <div class="ml-3 flex-1">
+              <div class="text-xs text-[#ff6b95] font-medium">昨晚的星空</div>
+              <div class="text-xs text-[#c7a9b7] truncate">你之前说想看星星，今晚天气不错哦...</div>
+            </div>
+            <div class="text-xs text-[#a18995]">昨天</div>
+          </div>
+          <div class="flex items-center p-2 hover:bg-[#f1fdff] rounded-lg transition">
+            <div class="w-10 h-10 bg-gradient-to-br from-[#ffb95f] to-[#ffa62e] rounded-full flex items-center justify-center">
+              <span class="iconify text-white" data-icon="mdi:weather-sunny"></span>
+            </div>
+            <div class="ml-3 flex-1">
+              <div class="text-xs text-[#ffa600] font-medium">晨间计划</div>
+              <div class="text-xs text-[#d0b98d] truncate">元气满满开始新的一天吧！</div>
+            </div>
+            <div class="text-xs text-[#c0aa72]">今天</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 主聊天区 -->
+    <div class="flex-1 flex flex-col bg-gradient-to-b from-white to-[#f9f9fe] relative">
+      <!-- 顶部状态栏 -->
+      <div class="p-4 border-b border-[#eee8f0] z-10 flex items-center">
+        <div class="relative">
+          <div class="w-14 h-14 animate-pulse-soft bg-gradient-to-r from-[#ffd1dc] to-[#ffcedb] rounded-full flex items-center justify-center">
+            <span class="iconify text-2xl text-white" data-icon="mdi:flower"></span>
+          </div>
+          <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+        </div>
+        <div class="ml-4 flex-1">
+          <h2 class="font-bold text-[#ff6b95]">暖阳 <span class="text-xs bg-pink-100 text-[#ff6b95] font-normal px-2 py-1 rounded-full ml-2">温柔型</span></h2>
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+            <span class="text-xs text-[#c7a9b7]">2025年10月27日 · 实时在线</span>
+          </div>
+        </div>
+        <button class="p-2 rounded-full hover:bg-[#ffecf2] text-[#c7a9b7] transition">
+          <span class="iconify" data-icon="mdi:cog-outline"></span>
+        </button>
+      </div>
+      
+      <!-- 情感反馈指示器 -->
+      <div class="px-4 py-3 bg-gradient-to-r from-[#fff0f5] to-[#f0ffff]">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <span class="iconify text-xl mr-2 text-[#ff6b95]" data-icon="mdi:heart-multiple"></span>
+            <span class="text-xs text-[#ff6b95]">当前情绪状态：平和</span>
+          </div>
+          
+          <div class="flex">
+            <div class="w-4 h-4 rounded-full emotion-dot bg-[#fee1e7] mr-1"></div>
+            <div class="w-4 h-4 rounded-full emotion-dot bg-[#ffc9d8] mr-1"></div>
+            <div class="w-4 h-4 rounded-full emotion-dot bg-[#ffb5c9] mr-1"></div>
+            <div class="w-4 h-4 rounded-full emotion-dot bg-[#ff9fb9]"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 聊天内容区域 -->
+      <div class="flex-1 overflow-y-auto p-4 hide-scrollbar blob-bg">
+        <div class="space-y-4 pb-16">
+          <!-- 系统欢迎消息 -->
+          <div class="text-center py-3">
+            <div class="inline-block bg-[#f0f0f0] text-[#888] text-xs rounded-full px-4 py-2">
+              2025年10月27日 · 这是你与暖阳的第一次对话
+            </div>
+          </div>
+          
+          <!-- AI消息 -->
+          <div class="flex w-full">
+            <div class="w-10 h-10 mr-3 flex-shrink-0 rounded-full bg-[#ffd1dc] flex items-center justify-center">
+              <span class="iconify text-white" data-icon="mdi:flower"></span>
+            </div>
+            <div class="max-w-[85%] md:max-w-[480px]">
+              <div class="message-animate bg-gradient-to-r from-[#ffecf2] to-[#ffe6ee] text-[#6a4d5a] rounded-r-2xl rounded-bl-2xl p-[14px] border border-[#ffdae6]">
+                你好呀！我是你的情感伙伴暖阳，我注意到今天是2025年10月27日，新的一周开始了呢~❤️<br><br>
+                看你的呼吸节奏很平缓，是一个调整状态的好时机，我们聊聊近况好吗？
+              </div>
+              <div class="text-xs text-[#c7a9b7] mt-2">上午 10:28</div>
+            </div>
+          </div>
+          
+          <!-- 用户消息 -->
+          <div class="flex justify-end w-full">
+            <div class="max-w-[85%] md:max-w-[480px]">
+              <div class="message-animate bg-gradient-to-r from-[#d7f2ff] to-[#c5ebff] text-[#446d7d] rounded-l-2xl rounded-br-2xl p-[14px] border border-[#cae6f5]">
+                有些失眠，上周的工作压力一直延续到现在...
+              </div>
+              <div class="text-xs text-[#98b8c6] mt-2 flex justify-end">上午 10:30</div>
+            </div>
+            <div class="w-10 h-10 ml-3 flex-shrink-0 rounded-full bg-gradient-to-r from-sky-400 to-blue-400 flex items-center justify-center">
+              <span class="iconify text-white" data-icon="mdi:account"></span>
+            </div>
+          </div>
+          
+          <!-- AI消息 - 带情感反馈 -->
+          <div class="flex w-full mt-6">
+            <div class="w-10 h-10 mr-3 flex-shrink-0 rounded-full bg-[#ffd1dc] flex items-center justify-center">
+              <span class="iconify text-white" data-icon="mdi:flower"></span>
+            </div>
+            <div class="max-w-[85%] md:max-w-[480px]">
+              <div class="message-animate bg-gradient-to-r from-[#ffecf2] to-[#ffe6ee] text-[#6a4d5a] rounded-r-2xl rounded-bl-2xl p-[14px] border border-[#ffdae6]">
+                🌸*轻轻拥抱*<br>
+                我能理解这种沉重的感觉，尤其是周末后还没恢复的状态。我整理了几种排解方式：
+                
+                <div class="border border-[#ffdae6] rounded-xl overflow-hidden mt-3">
+                  <div class="flex items-center bg-[#fff0f7] p-3">
+                    <span class="iconify text-lg text-[#ff6b95] mr-2" data-icon="mdi:meditation"></span>
+                    <div>
+                      <div class="font-medium text-[#ff6b95]">情绪工具箱</div>
+                      <div class="text-xs text-[#a18995]">即刻缓解压力的小方法</div>
+                    </div>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-2 p-3">
+                    <div class="p-3 bg-white/50 rounded-lg border border-[#ffdae6]">
+                      <span class="iconify block text-xl text-[#ff6b95] mb-1" data-icon="mdi:music-note"></span>
+                      <div class="text-xs font-medium">音疗电台</div>
+                    </div>
+                    <div class="p-3 bg-white/50 rounded-lg border border-[#ffdae6]">
+                      <span class="iconify block text-xl text-[#ff6b95] mb-1" data-icon="mdi:atom"></span>
+                      <div class="text-xs font-medium">呼吸练习</div>
+                    </div>
+                    <div class="p-3 bg-white/50 rounded-lg border border-[#ffdae6]">
+                      <span class="iconify block text-xl text-[#ff6b95] mb-1" data-icon="mdi:tea"></span>
+                      <div class="text-xs font-medium">茶歇时光</div>
+                    </div>
+                    <div class="p-3 bg-white/50 rounded-lg border border-[#ffdae6]">
+                      <span class="iconify block text-xl text-[#ff6b95] mb-1" data-icon="mdi:yoga"></span>
+                      <div class="text-xs font-medium">微伸展</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-xs text-[#c7a9b7] mt-2 flex items-center">
+                <span class="iconify mr-1" data-icon="mdi:heart"></span>
+                情感指数 82% · 上午 10:32
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 预测菜单 -->
+      <div class="px-4 py-3 bg-white border-t border-[#eee8f0] opacity-0 animate-in fade-in-50 delay-300">
+        <div class="flex overflow-x-auto pb-1 hide-scrollbar">
+          <button class="pr-2">
+            <div class="px-4 py-2 bg-pink-50 rounded-full text-[#ff6b95] text-sm">分享一下最近的见闻</div>
+          </button>
+          <button class="px-2">
+            <div class="px-4 py-2 bg-pink-50 rounded-full text-[#ff6b95] text-sm">推荐放松的方法</div>
+          </button>
+          <button class="px-2">
+            <div class="px-4 py-2 bg-pink-50 rounded-full text-[#ff6b95] text-sm">我想要倾诉</div>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 输入功能区 -->
+      <div class="p-3 border-t border-[#eee8f0]">
+        <div class="flex items-center">
+          <button class="w-10 h-10 flex items-center justify-center text-[#9e9e9e] hover:text-[#ff6b95] transition">
+            <span class="iconify text-xl" data-icon="mdi:emoticon-outline"></span>
+          </button>
+          <button class="w-10 h-10 flex items-center justify-center text-[#9e9e9e] hover:text-[#ff6b95] transition">
+            <span class="iconify text-xl" data-icon="mdi:microphone"></span>
+          </button>
+          
+          <div class="flex-1 mx-2 relative">
+            <textarea placeholder="告诉暖阳你的心情..." class="w-full min-h-[44px] max-h-[120px] p-3 rounded-xl border border-[#eee8f0] focus:border-[#ffd1dc] focus:outline-none resize-none" style="caret-color: #ff6b95;"></textarea>
+          </div>
+          
+          <button class="w-12 h-12 rounded-full bg-gradient-to-r from-[#ff6b95] to-[#ff88a3] flex items-center justify-center text-white shadow-sm hover:shadow-md transition">
+            <span class="iconify" data-icon="mdi:send"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 侧边栏切换功能
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const closeBtn = document.getElementById('closeSidebar');
+    const sidebar = document.getElementById('sidebar');
+    
+    if(toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        sidebar.style.left = '0';
+      });
+    }
+    
+    if(closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        sidebar.style.left = '-100%';
+      });
+    }
+    
+    // 人格选择交互
+    const personas = document.querySelectorAll('.character-hover');
+    personas.forEach(persona => {
+      persona.addEventListener('click', function() {
+        personas.forEach(p => p.classList.remove('selected-persona'));
+        this.classList.add('selected-persona');
+        
+        // 更新顶部角色信息
+        const personaType = this.getAttribute('data-persona');
+        const topAvatar = document.querySelector('.avatar-3d');
+        const topName = document.querySelector('.ml-4 h2');
+        const topStatus = document.querySelector('.ml-4 > div span:last-child');
+        
+        switch(personaType) {
+          case 'gentle':
+            topAvatar.style.background = 'linear-gradient(to right, #ffd1dc, #ffcedb)';
+            topName.textContent = '暖阳';
+            topName.style.color = '#ff6b95';
+            topStatus.textContent = '2025年10月27日 · 实时在线';
+            break;
+          case 'energetic':
+            topAvatar.style.background = 'linear-gradient(to right, #ffe6000, #ffd700)';
+            topName.textContent = '小阳';
+            topName.style.color = '#ffa600';
+            topStatus.textContent = '2025年10月27日 · 充满能量';
+            break;
+          case 'wise':
+            topAvatar.style.background = 'linear-gradient(to right, #b5ead7, #a0e0cb)';
+            topName.textContent = '思哲';
+            topName.style.color = '#64c4a3';
+            topStatus.textContent = '2025年10月27日 · 思考中';
+            break;
+        }
+      });
+    });
+  });
+  </script>
+</body>
+</html>

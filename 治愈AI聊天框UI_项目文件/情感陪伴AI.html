@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>心语伙伴 | 2025治愈系AI伴侣</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  
+  <style>
+  @font-face {
+    font-family: 'Comfortaa';
+    src: url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600&display=swap');
+  }
+  
+  body {
+    font-family: 'Comfortaa', 'Helvetica Neue', sans-serif;
+    background: radial-gradient(circle at top right, #FFEAEA, #E6FAF8);
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+  }
+  
+  @keyframes bubble {
+    0% { 
+      opacity: 0;
+      transform: translateY(12px) scale(0.9);
+    }
+    100% { 
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+  
+  .message-animate {
+    animation: bubble 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  }
+  
+  .character-animate {
+    transition: all 0.3s ease-out;
+  }
+  
+  .character-animate:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+  
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+  
+  .bubble-chat {
+    border-radius: 24px 24px 24px 4px;
+    position: relative;
+    max-width: 85%;
+  }
+  
+  .bubble-user {
+    border-radius: 24px 24px 4px 24px;
+    position: relative;
+    max-width: 85%;
+  }
+  
+  .emotion-indicator {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  /* 响应式适配 */
+  @media (max-width: 480px) {
+    .character-avatar {
+      width: 80px;
+      height: 80px;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .character-avatar {
+      width: 120px;
+      height: 120px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .main-container {
+      max-width: 1200px;
+    }
+  }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-6">
+  <!-- 主容器 -->
+  <div class="main-container w-full max-w-[1280px] h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row glass-card">
+    <!-- 侧边栏 - 角色选择区 -->
+    <div class="w-full lg:w-[300px] bg-gradient-to-b from-[#fff9fb] to-[#f1fdff] p-5 overflow-y-auto hide-scrollbar relative z-10">
+      <!-- 装饰元素 -->
+      <div class="absolute top-0 right-0 w-48 h-48 bg-[#ffd1dc]/20 rounded-full blur-2xl"></div>
+      
+      <div class="text-center mt-4 mb-8">
+        <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b95] to-[#ff88a3]">
+          心语伙伴
+        </h1>
+        <p class="text-sm text-[#9e9e9e] mt-2">2025年10月27日</p>
+      </div>
+      
+      <!-- AI角色选择 -->
+      <div class="mb-8">
+        <h3 class="text-[#ff6b95] text-sm font-medium mb-4 flex items-center">
+          <span class="iconify mr-2" data-icon="mdi:account-heart"></span>
+          选择你的伙伴
+        </h3>
+        
+        <div class="space-y-5">
+          <!-- 温柔型角色 -->
+          <div class="character-animate bg-white p-4 rounded-xl shadow-sm border border-[#ffeef3] cursor-pointer transition-all hover:shadow-md" data-persona="gentle">
+            <div class="flex items-center">
+              <div class="character-avatar relative flex-shrink-0">
+                <div class="w-full h-full animate-float bg-gradient-to-r from-[#ffd1dc] to-[#ffcedb] rounded-full flex items-center justify-center">
+                  <span class="iconify text-4xl text-white" data-icon="mdi:cat"></span>
+                </div>
+                <div class="emotion-indicator bg-pink-100 text-[#ff6b95] absolute -bottom-1 -right-1">
+                  <span class="iconify" data-icon="mdi:heart"></span>
+                </div>
+              </div>
+              <div class="ml-4 flex-1">
+                <h4 class="font-bold text-[#ff6b95]">暖心小咪</h4>
+                <p class="text-xs text-[#c7a9b7] mt-1">温柔体贴 · 善解人意</p>
+                <div class="flex mt-2">
+                  <div class="flex items-center text-xs bg-pink-50 text-[#ff6b95] px-2 py-1 rounded-full">
+                    <span class="iconify mr-1" data-icon="mdi:weather-night"></span>
+                    放松陪伴
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 热情型角色 -->
+          <div class="character-animate bg-white p-4 rounded-xl shadow-sm border border-[#fff8e0] cursor-pointer transition-all hover:shadow-md" data-persona="energetic">
+            <div class="flex items-center">
+              <div class="character-avatar relative flex-shrink-0">
+                <div class="w-full h-full animate-float bg-gradient-to-r from-[#ffd700] to-[#ffcc00] rounded-full flex items-center justify-center">
+                  <span class="iconify text-4xl text-white" data-icon="mdi:rabbit"></span>
+                </div>
+                <div class="emotion-indicator bg-yellow-100 text-[#ffaa00] absolute -bottom-1 -right-1">
+                  <span class="iconify" data-icon="mdi:star"></span>
+                </div>
+              </div>
+              <div class="ml-4 flex-1">
+                <h4 class="font-bold text-[#ffaa00]">元气小兔</h4>
+                <p class="text-xs text-[#d0b98d] mt-1">活力满满 · 创意无限</p>
+                <div class="flex mt-2">
+                  <div class="flex items-center text-xs bg-yellow-50 text-[#ffaa00] px-2 py-1 rounded-full">
+                    <span class="iconify mr-1" data-icon="mdi:lightbulb-on"></span>
+                    灵感激发
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 理性型角色 -->
+          <div class="character-animate bg-white p-4 rounded-xl shadow-sm border border-[#e8f8f6] cursor-pointer transition-all hover:shadow-md" data-persona="wise">
+            <div class="flex items-center">
+              <div class="character-avatar relative flex-shrink-0">
+                <div class="w-full h-full animate-float bg-gradient-to-r from-[#b5ead7] to-[#a0e0cb] rounded-full flex items-center justify-center">
+                  <span class="iconify text-4xl text-white" data-icon="mdi:owl"></span>
+                </div>
+                <div class="emotion-indicator bg-teal-100 text-[#64c4a3] absolute -bottom-1 -right-1">
+                  <span class="iconify" data-icon="mdi:brain"></span>
+                </div>
+              </div>
+              <div class="ml-4 flex-1">
+                <h4 class="font-bold text-[#64c4a3]">智慧小哲</h4>
+                <p class="text-xs text-[#a0c2b7] mt-1">理性思考 · 解决方案专家</p>
+                <div class="flex mt-2">
+                  <div class="flex items-center text-xs bg-teal-50 text-[#64c4a3] px-2 py-1 rounded-full">
+                    <span class="iconify mr-1" data-icon="mdi:book-education"></span>
+                    深度交流
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 情感状态 -->
+      <div class="mt-8 p-4 bg-gradient-to-r from-[#fff0f5] to-[#f1fdff] rounded-xl">
+        <h3 class="text-[#ff6b95] text-sm font-medium mb-3 flex items-center">
+          <span class="iconify mr-2" data-icon="mdi:emoticon-happy"></span>
+          今日情绪报告
+        </h3>
+        <div class="flex items-center">
+          <div class="text-3xl text-[#ff6b95] mr-3">😊</div>
+          <div class="flex-1">
+            <div class="text-sm text-[#6a4d5a]">总体情绪：平和安定</div>
+            <div class="w-full h-2 bg-[#ffdae6] rounded-full mt-2 overflow-hidden">
+              <div class="h-full bg-[#ff6b95] rounded-full" style="width: 72%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 主聊天区 -->
+    <div class="flex-1 flex flex-col">
+      <!-- 顶部状态栏 -->
+      <div class="p-4 border-b border-[#eee8f0] flex items-center">
+        <div class="flex items-center">
+          <div class="character-avatar relative">
+            <div class="w-full h-full animate-float bg-gradient-to-r from-[#ffd1dc] to-[#ffcedb] rounded-full flex items-center justify-center">
+              <span class="iconify text-4xl text-white" data-icon="mdi:cat"></span>
+            </div>
+            <div class="emotion-indicator bg-green-400 absolute -bottom-1 -right-1">
+              <span class="iconify text-white" data-icon="mdi:check"></span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <h2 class="font-bold text-[#ff6b95]">暖心小咪</h2>
+            <div class="text-xs text-[#c7a9b7] mt-1 flex items-center">
+              <span class="iconify mr-1 text-green-500" data-icon="mdi:circle"></span>
+              在线 · 2025年10月27日
+            </div>
+          </div>
+        </div>
+        <div class="ml-auto flex">
+          <button class="w-10 h-10 flex items-center justify-center text-[#9e9e9e] hover:text-[#ff6b95] rounded-full hover:bg-[#ffecf2]">
+            <span class="iconify" data-icon="mdi:cog"></span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 聊天内容区域 -->
+      <div class="flex-1 overflow-y-auto p-4 hide-scrollbar relative">
+        <!-- 装饰背景 -->
+        <div class="fixed inset-0 -z-10 opacity-10">
+          <div class="absolute top-20 right-20 w-64 h-64 bg-[#ffd1dc] rounded-full blur-3xl"></div>
+          <div class="absolute bottom-40 left-40 w-56 h-56 bg-[#b5ead7] rounded-full blur-3xl"></div>
+        </div>
+        
+        <!-- 消息区域 -->
+        <div class="max-w-4xl mx-auto">
+          <!-- 系统消息 -->
+          <div class="text-center py-4">
+            <div class="inline-block bg-gray-100 text-gray-500 text-xs rounded-full px-4 py-2">
+              这是你与暖心小咪的第一次对话 · 2025年10月27日
+            </div>
+          </div>
+          
+          <!-- AI消息 -->
+          <div class="flex mb-6">
+            <div class="w-10 h-10 mr-3 flex-shrink-0">
+              <div class="w-full h-full rounded-full bg-[#ffd1dc] flex items-center justify-center">
+                <span class="iconify text-white" data-icon="mdi:cat"></span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <div class="bubble-chat message-animate bg-gradient-to-r from-[#ffecf2] to-[#ffe6ee] text-[#6a4d5a] p-4">
+                <div class="flex items-center mb-2">
+                  <span class="font-medium text-[#ff6b95]">暖心小咪</span>
+                  <span class="text-xs text-[#c7a9b7] ml-2">10:28</span>
+                </div>
+                你好呀～我是你的专属伙伴暖心小咪🐱<br>
+                今天是2025年10月27日，阳光真好！<br>
+                有什么想和我分享的吗？或者需要我陪你聊聊天？
+              </div>
+              
+              <!-- 情感反馈 -->
+              <div class="flex items-center mt-2 ml-2">
+                <span class="iconify text-[#ff6b95] text-sm" data-icon="mdi:emoticon-happy"></span>
+                <span class="text-xs text-[#c7a9b7] ml-1">情绪状态：开心 · 期待交流</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 用户消息 -->
+          <div class="flex justify-end mb-6">
+            <div class="flex-1 max-w-[85%]">
+              <div class="bubble-user message-animate bg-gradient-to-r from-[#d7f2ff] to-[#c5ebff] text-[#446d7d] p-4">
+                <div class="flex items-center mb-2 justify-end">
+                  <span class="text-xs text-[#98b8c6] mr-2">10:30</span>
+                  <span class="font-medium text-[#4a90e2]">我</span>
+                </div>
+                最近工作压力有点大，睡眠不太好...
+              </div>
+            </div>
+            <div class="w-10 h-10 ml-3 flex-shrink-0">
+              <div class="w-full h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500 flex items-center justify-center">
+                <span class="iconify text-white" data-icon="mdi:account"></span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- AI消息 - 带解决方案 -->
+          <div class="flex mb-6">
+            <div class="w-10 h-10 mr-3 flex-shrink-0">
+              <div class="w-full h-full rounded-full bg-[#ffd1dc] flex items-center justify-center">
+                <span class="iconify text-white" data-icon="mdi:cat"></span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <div class="bubble-chat message-animate bg-gradient-to-r from-[#ffecf2] to-[#ffe6ee] text-[#6a4d5a] p-4">
+                <div class="flex items-center mb-2">
+                  <span class="font-medium text-[#ff6b95]">暖心小咪</span>
+                  <span class="text-xs text-[#c7a9b7] ml-2">10:32</span>
+                </div>
+                <div class="mb-3">
+                  🌸*轻轻拍拍你的手*<br>
+                  压力像云朵一样，看着很大但很轻～<br>
+                  我为你准备了一些放松小建议：
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                  <div class="bg-white/50 rounded-xl p-3 border border-[#ffdae6]">
+                    <div class="flex items-start">
+                      <span class="iconify text-xl text-[#ff6b95] mr-2" data-icon="mdi:music"></span>
+                      <div>
+                        <div class="font-medium text-[#ff6b95]">宁静旋律</div>
+                        <div class="text-xs text-[#a18995]">定制解压音乐清单</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="bg-white/50 rounded-xl p-3 border border-[#ffdae6]">
+                    <div class="flex items-start">
+                      <span class="iconify text-xl text-[#ff6b95] mr-2" data-icon="mdi:weather-night"></span>
+                      <div>
+                        <div class="font-medium text-[#ff6b95]">睡眠故事</div>
+                        <div class="text-xs text-[#a18995]">助你入眠的温馨故事</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="bg-white/50 rounded-xl p-3 border border-[#ffdae6]">
+                    <div class="flex items-start">
+                      <span class="iconify text-xl text-[#ff6b95] mr-2" data-icon="mdi:leaf"></span>
+                      <div>
+                        <div class="font-medium text-[#ff6b95]">呼吸练习</div>
+                        <div class="text-xs text-[#a18995]">3分钟缓解压力</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="bg-white/50 rounded-xl p-3 border border-[#ffdae6]">
+                    <div class="flex items-start">
+                      <span class="iconify text-xl text-[#ff6b95] mr-2" data-icon="mdi:calendar-heart"></span>
+                      <div>
+                        <div class="font-medium text-[#ff6b95]">每日小确幸</div>
+                        <div class="text-xs text-[#a18995]">记录生活中的美好</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 情感反馈 -->
+              <div class="flex items-center mt-2 ml-2">
+                <span class="iconify text-[#ff6b95] text-sm" data-icon="mdi:emoticon-cool"></span>
+                <span class="text-xs text-[#c7a9b7] ml-1">情绪状态：关切 · 建议中</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 输入功能区 -->
+      <div class="p-4 border-t border-[#eee8f0] bg-white">
+        <!-- 预测功能区 -->
+        <div class="flex overflow-x-auto mb-3 hide-scrollbar">
+          <button class="flex-shrink-0 px-3 py-2 bg-pink-50 text-[#ff6b95] rounded-full text-sm mr-2">
+            分享今天的烦恼
+          </button>
+          <button class="flex-shrink-0 px-3 py-2 bg-pink-50 text-[#ff6b95] rounded-full text-sm mr-2">
+            需要放松技巧
+          </button>
+          <button class="flex-shrink-0 px-3 py-2 bg-pink-50 text-[#ff6b95] rounded-full text-sm">
+            想要听故事
+          </button>
+        </div>
+        
+        <!-- 输入区域 -->
+        <div class="flex items-center">
+          <button class="w-10 h-10 flex items-center justify-center text-[#9e9e9e] hover:text-[#ff6b95] rounded-full hover:bg-[#ffecf2]">
+            <span class="iconify text-xl" data-icon="mdi:emoticon-outline"></span>
+          </button>
+          
+          <button class="w-10 h-10 flex items-center justify-center text-[#9e9e9e] hover:text-[#ff6b95] rounded-full hover:bg-[#ffecf2] ml-1">
+            <span class="iconify text-xl" data-icon="mdi:microphone"></span>
+          </button>
+          
+          <div class="flex-1 mx-2">
+            <textarea 
+              placeholder="和暖心小咪说点什么..." 
+              class="w-full min-h-[50px] bg-gray-50 rounded-2xl p-3 border border-[#eee8f0] focus:border-[#ffd1dc] focus:outline-none resize-none"
+              style="caret-color: #ff6b95;"></textarea>
+          </div>
+          
+          <button class="w-12 h-12 rounded-full bg-gradient-to-r from-[#ff6b95] to-[#ff88a3] flex items-center justify-center text-white shadow-md hover:shadow-lg transition">
+            <span class="iconify" data-icon="mdi:send"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 角色选择交互
+    const personas = document.querySelectorAll('.character-animate');
+    personas.forEach(persona => {
+      persona.addEventListener('click', function() {
+        // 更新顶部角色信息
+        const personaType = this.getAttribute('data-persona');
+        const topAvatar = document.querySelector('.character-avatar > div');
+        const topName = document.querySelector('.ml-4 h2');
+        const topStatus = document.querySelector('.ml-4 > div');
+        
+        switch(personaType) {
+          case 'gentle':
+            topAvatar.style.background = 'linear-gradient(to right, #ffd1dc, #ffcedb)';
+            topAvatar.innerHTML = '<span class="iconify text-4xl text-white" data-icon="mdi:cat"></span>';
+            topName.textContent = '暖心小咪';
+            topName.style.color = '#ff6b95';
+            topStatus.innerHTML = '<span class="iconify mr-1 text-green-500" data-icon="mdi:circle"></span>在线 · 2025年10月27日';
+            break;
+          case 'energetic':
+            topAvatar.style.background = 'linear-gradient(to right, #ffd700, #ffcc00)';
+            topAvatar.innerHTML = '<span class="iconify text-4xl text-white" data-icon="mdi:rabbit"></span>';
+            topName.textContent = '元气小兔';
+            topName.style.color = '#ffaa00';
+            topStatus.innerHTML = '<span class="iconify mr-1 text-green-500" data-icon="mdi:circle"></span>在线 · 充满能量';
+            break;
+          case 'wise':
+            topAvatar.style.background = 'linear-gradient(to right, #b5ead7, #a0e0cb)';
+            topAvatar.innerHTML = '<span class="iconify text-4xl text-white" data-icon="mdi:owl"></span>';
+            topName.textContent = '智慧小哲';
+            topName.style.color = '#64c4a3';
+            topStatus.innerHTML = '<span class="iconify mr-1 text-green-500" data-icon="mdi:circle"></span>在线 · 思考中';
+            break;
+        }
+      });
+    });
+    
+    // 消息发送功能
+    const sendButton = document.querySelector('.bg-gradient-to-r');
+    const textarea = document.querySelector('textarea');
+    
+    if(sendButton && textarea) {
+      sendButton.addEventListener('click', function() {
+        const message = textarea.value.trim();
+        if(message) {
+          // 创建用户消息
+          const messagesContainer = document.querySelector('.max-w-4xl');
+          const newMessage = document.createElement('div');
+          newMessage.className = 'flex justify-end mb-6';
+          newMessage.innerHTML = `
+            <div class="flex-1 max-w-[85%]">
+              <div class="bubble-user message-animate bg-gradient-to-r from-[#d7f2ff] to-[#c5ebff] text-[#446d7d] p-4">
+                <div class="flex items-center mb-2 justify-end">
+                  <span class="text-xs text-[#98b8c6] mr-2">${getCurrentTime()}</span>
+                  <span class="font-medium text-[#4a90e2]">我</span>
+                </div>
+                ${message}
+              </div>
+            </div>
+            <div class="w-10 h-10 ml-3 flex-shrink-0">
+              <div class="w-full h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500 flex items-center justify-center">
+                <span class="iconify text-white" data-icon="mdi:account"></span>
+              </div>
+            </div>
+          `;
+          
+          messagesContainer.appendChild(newMessage);
+          
+          // 清空输入框
+          textarea.value = '';
+          
+          // 滚动到底部
+          messagesContainer.scrollTo(0, messagesContainer.scrollHeight);
+          
+          // 模拟AI回复
+          setTimeout(() => {
+            const aiMessage = document.createElement('div');
+            aiMessage.className = 'flex mb-6';
+            aiMessage.innerHTML = `
+              <div class="w-10 h-10 mr-3 flex-shrink-0">
+                <div class="w-full h-full rounded-full bg-[#ffd1dc] flex items-center justify-center">
+                  <span class="iconify text-white" data-icon="mdi:cat"></span>
+                </div>
+              </div>
+              <div class="flex-1">
+                <div class="bubble-chat message-animate bg-gradient-to-r from-[#ffecf2] to-[#ffe6ee] text-[#6a4d5a] p-4">
+                  <div class="flex items-center mb-2">
+                    <span class="font-medium text-[#ff6b95]">暖心小咪</span>
+                    <span class="text-xs text-[#c7a9b7] ml-2">${getCurrentTime()}</span>
+                  </div>
+                  我明白了，感谢你和我分享这些～<br>
+                  一起面对这些挑战会让你感觉轻松些吗？
+                </div>
+                <div class="flex items-center mt-2 ml-2">
+                  <span class="iconify text-[#ff6b95] text-sm" data-icon="mdi:emoticon-happy"></span>
+                  <span class="text-xs text-[#c7a9b7] ml-1">情绪状态：理解 · 支持</span>
+                </div>
+              </div>
+            `;
+            
+            messagesContainer.appendChild(aiMessage);
+            
+            // 滚动到底部
+            messagesContainer.scrollTo(0, messagesContainer.scrollHeight);
+          }, 1500);
+        }
+      });
+    }
+    
+    // 获取当前时间
+    function getCurrentTime() {
+      const now = new Date();
+      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  });
+  </script>
+</body>
+</html>
