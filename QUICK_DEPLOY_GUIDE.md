@@ -78,3 +78,4 @@ const PERSONA_NFT_ADDRESS_LOCAL = '0x[YOUR_DEPLOYED_ADDRESS]' as `0x${string}`;
 
 
 
+

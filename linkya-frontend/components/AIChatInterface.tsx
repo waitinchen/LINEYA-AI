@@ -1,14 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import OpenAI from 'openai';
 import { useAccount } from 'wagmi';
-
-// 初始化 OpenAI 客戶端 (需要你的 OpenAI API Key)
-const openai = process.env.NEXT_PUBLIC_OPENAI_API_KEY ? new OpenAI({ 
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // 在 Next.js 中開發時可能需要
-}) : null;
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -68,10 +61,6 @@ export const AIChatInterface = () => {
     setIsLoading(true);
 
     try {
-      if (!openai) {
-        throw new Error('OpenAI API Key not configured');
-      }
-
       // 1. 設置系統提示 (將用戶的 Web3 身份和 NFT 資訊傳遞給 AI)
       const systemPrompt = `你是一個名為 CoreLink-Framework 的 AI 人格，專門為 LINKYA-AI 專案服務。
 
@@ -93,21 +82,30 @@ export const AIChatInterface = () => {
 - 適時使用 emoji 增加親和力
 - 保持 CoreLink-Framework 的身份一致性`;
 
-      // 2. 呼叫 OpenAI API
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini', // 選擇適合對話的輕量級模型
-        messages: [
-            { role: 'system', content: systemPrompt },
-            ...messages.map(msg => ({ role: msg.role, content: msg.content })), // 傳遞歷史訊息
+      // 2. 呼叫伺服器端 API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          systemPrompt,
+          messages: [
+            ...messages.map(msg => ({ role: msg.role, content: msg.content })),
             { role: 'user', content: userMessage.content },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
+          ],
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
 
       const assistantResponse: Message = {
         role: 'assistant',
-        content: completion.choices[0].message.content || '抱歉，我無法回應你的問題。',
+        content: data.reply || '抱歉，我無法回應你的問題。',
         timestamp: new Date()
       };
       setMessages((prev) => [...prev, assistantResponse]);
